@@ -1,0 +1,17 @@
+shop
+bank
+internet
+phone
+tech
+police
+blog
+email
+hospital
+food
+supermarket
+university
+hack
+money
+sho
+network
+store

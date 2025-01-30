@@ -1,0 +1,22 @@
+Port_Number Service_Name 
+22          ssh
+
+21          ftp
+
+6667        chat
+
+3306        students/criminals/employees
+
+141         bank_account
+
+25          smtp
+
+80          http
+
+1222        rshell
+
+37777       cctv
+
+8080        router
+
+1542        repository
