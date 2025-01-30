@@ -1,3 +1,4 @@
 /build
-/imports
 /test.gs
+imports/bios.src
+imports/cmd.src
