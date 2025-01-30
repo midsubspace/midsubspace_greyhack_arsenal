@@ -3,7 +3,11 @@ shell=get_shell
 computer=shell.host_computer
 crypto=include_lib("/lib/crypto.so")
 computer.File(program_path).delete
-computer.File("/root/file.cap").delete
+if active_user=="root" then
+    computer.File("/root/file.cap").delete
+else
+    computer.File("/"+active_user+"/file.cap").delete
+end if
 if computer.active_net_card=="WIFI" then
     interface="wlan0"
 else
@@ -61,5 +65,9 @@ if typeof(connectionResult) == "string" then
     print("There was an error while connecting to new Wifi: " + connectionResult)
  else
     print("Connected to new Wifi successfully.")
-    computer.File("/root/file.cap").delete
+    if active_user=="root" then
+        computer.File("/root/file.cap").delete
+    else
+        computer.File("/"+active_user+"/file.cap").delete
+    end if
  end if
