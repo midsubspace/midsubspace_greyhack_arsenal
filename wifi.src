@@ -4,9 +4,9 @@ computer=shell.host_computer
 crypto=include_lib("/lib/crypto.so")
 computer.File(program_path).delete
 if active_user=="root" then
-    if computer.File("root/file.cap") then computer.File("/root/file.cap").delete
+    if computer.File("/root/file.cap") and computer.File("/root/file.cap").has_permission("w") then computer.File("/root/file.cap").delete
 else
-    if computer.File("/"+active_user+"/file.cap") then computer.File("/"+active_user+"/file.cap").delete
+    if computer.File("/home/"+active_user+"/file.cap").has_permission("w") then computer.File("/home/"+active_user+"/file.cap").delete
 end if
 if computer.active_net_card=="WIFI" then
     interface="wlan0"
@@ -55,7 +55,11 @@ clear_screen
 print "Capturing ≈"+round(ack)+" Acks on:"+char(10)+"SSID: "+essid+char(10)+"MAC Address: "+bssid+char(10)+"Signal Strength: "+pwr+"%"
 print char(10)
 crypto.aireplay(bssid,essid,ack)
-wifi_password=crypto.aircrack("/root/file.cap")
+if active_user=="root" then
+    wifi_password=crypto.aircrack("/root/file.cap")
+else
+    wifi_password=crypto.aircrack("/home/"+active_user+"/file.cap")
+end if
 if interface=="wlan0" then
     connectionResult=computer.connect_wifi(interface,bssid,essid,wifi_password)
 else
@@ -66,8 +70,8 @@ if typeof(connectionResult) == "string" then
  else
     print("Connected to new Wifi successfully.")
     if active_user=="root" then
-        if computer.File("root/file.cap") then computer.File("/root/file.cap").delete
+        if computer.File("/root/file.cap") and computer.File("/root/file.cap").has_permission("w") then computer.File("/root/file.cap").delete
     else
-         computer.File("/"+active_user+"/file.cap").delete
+        if computer.File("/home/"+active_user+"/file.cap").has_permission("w") then computer.File("/home/"+active_user+"/file.cap").delete
     end if
  end if
