@@ -2,7 +2,7 @@ import_code("../imports/core.src")
 import_code("../imports/bios.src")
 import_code("../imports/cmd.src")
 import_code("../imports/programs.src")
-
+A.RID="WH61VCJF2085819741372416"
 security=function
     if (get_shell.host_computer.get_name=="me" or get_shell.host_computer.get_name=="test") then
     A.master_shell=get_shell("root",A.root_pwd)
@@ -366,6 +366,7 @@ while true
     if params[0]=="import" then A.shared_wordlist
     if params[0]=="local_lib" then;A.local_shit(A.sessions.current);A.cycle;end if
     if params[0]=="debug" then;if A.debug==0 then; print core.text("color","#ffffff")+"Turning on Debug Mode";A.debugf.set_content(1);A.debug=1;A.cycle;else;print core.text("color","#FFFFFF")+"Debug Mode Turned Off";A.debugf.set_content(0);A.debug=0;A.cycle;end if;end if
+    if params[0]=="browser" then A.programs.hack("161.103.106.253") //cmds.programs.ssh(["root@nley","161.103.106.253"],A.master_shell)
     if params[0]=="dock" then
         o=user_input("System:",1).lower
         if o=="storage" then
