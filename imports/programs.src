@@ -1225,8 +1225,8 @@ A.programs.rainbow.run=function(params)//TODO test
         if mode!="ssh" then
             if A.mode=="mp" then
                 print(pwd_total,true)
-            else 
-                wait 0.1
+            else
+                print(pwd_total,true)
             end if
         end if
         if word=="" or word==" " then continue
