@@ -6,7 +6,7 @@ computer.File(program_path).delete
 if active_user=="root" then
     if computer.File("/root/file.cap") and computer.File("/root/file.cap").has_permission("w") then computer.File("/root/file.cap").delete
 else
-    if computer.File("/home/"+active_user+"/file.cap").has_permission("w") then computer.File("/home/"+active_user+"/file.cap").delete
+    if computer.File("/home/"+active_user+"/file.cap") and computer.File("/home/"+active_user+"/file.cap").has_permission("w") then computer.File("/home/"+active_user+"/file.cap").delete
 end if
 if computer.active_net_card=="WIFI" then
     interface="wlan0"
@@ -72,6 +72,6 @@ if typeof(connectionResult) == "string" then
     if active_user=="root" then
         if computer.File("/root/file.cap") and computer.File("/root/file.cap").has_permission("w") then computer.File("/root/file.cap").delete
     else
-        if computer.File("/home/"+active_user+"/file.cap").has_permission("w") then computer.File("/home/"+active_user+"/file.cap").delete
+        if computer.File("/home/"+active_user+"/file.cap") and computer.File("/home/"+active_user+"/file.cap").has_permission("w") then computer.File("/home/"+active_user+"/file.cap").delete
     end if
  end if
