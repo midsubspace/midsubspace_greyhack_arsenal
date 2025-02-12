@@ -507,11 +507,11 @@ A.programs.update.run=function(params)
     end if
     r=get_shell.host_computer.create_folder(current_path, "lib")
     A.server.scp("/root/lib/aptclient.so",current_path+"/lib",get_shell)
-    aptlib=include_lib(A.programs.find.run("aptclient.so"))
+    aptlib=include_lib(A.programs.find.run(["find","aptclient.so"]))
     if A.hackshop==null then A.programs.find.run(1)
     aptlib.add_repo(A.hackshop)
     if A.debug==1 then aptlib.update
-    package_list = ["metaxploit.so", "crypto.so","librshell.so","librshell.so"]
+    package_list = ["metaxploit.so", "crypto.so","librshell.so"]
     if mode!="server" then
         if location==null then 
             location=current_path
@@ -1649,7 +1649,7 @@ A.programs.gateway.run=function(params)//TODO FIX Broke
     else
         print("File got sent successfully.")
     end if
-    s=A.remote_server.scp("/root/shadow_data/safe/librshell.so","/lib",gateway)
+    s=A.remote_server.scp("/root/lib/librshell.so","/lib",gateway)
     if typeof(s) == "string" then
         exit("There was an error while sending file: " + s)
     else
