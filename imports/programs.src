@@ -808,6 +808,11 @@ end function
 A.programs.hack={"name":"hack","desc":"Remotly Hack a System","usg":"ip_address","req":"file"}
 A.programs.hack.run=function(params)//TODO test
     if A.debug!=1 then clear_screen
+    if params.len!=2 then 
+        print core.text("color","#ffffff")+"Hack [IP/website url]"
+        wait 3
+        A.cycle
+    end if
     ip=A.programs.nmap.run(["nmap",params[1]])
     target_port=null
     if params.len>2 then target_port=params[2]
