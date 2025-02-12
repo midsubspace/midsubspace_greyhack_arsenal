@@ -334,6 +334,14 @@ setup=function
     end for
     A.computer.touch(A.bios.path,".debug");A.debugf=A.computer.File(A.bios.path+"/.debug");if A.debugf.get_content=="" then A.debugf.set_content(0);A.debug=A.debugf.get_content.val;if A.debug==1 then clear_screen=print
     A.computer.touch(A.bios.path,".stream");A.streamf=A.computer.File(A.bios.path+"/.stream");if A.streamf.get_content=="" then A.streamf.set_content(0);A.stream=A.streamf.get_content.val
+    cmds.usr=core.check_user(A.sessions.current)
+    if cmds.usr=="root" then 
+        cmds.dir="/root"
+    else if cmds.usr=="guest" then
+        cmds.dir="/home/guest"
+    else
+        cmds.dir="/home/"+cmds.usr
+    end if
 end function
 
 A.cycle=function
@@ -341,13 +349,6 @@ while true
     params=[]
     if A.debug!=1 then
         cmds.usr=core.check_user(A.sessions.current)
-        if cmds.usr=="root" then 
-            cmds.dir="/root"
-        else if cmds.usr=="guest" then
-            cmds.dir="/home/guest"
-        else
-            cmds.dir="/home/"+cmds.usr
-        end if
         if typeof(A.sessions.current)=="shell" then
             prompt=core.text("color","#FBFF00")+"["+A.sessions.current.host_computer.public_ip+"@"+A.sessions.current.host_computer.local_ip+"]("+typeof(A.sessions.current)+")"+core.text("color","#FFFFFF")+cmds.usr+"@:"+cmds.dir+"> "
         else if typeof(A.sessions.current)=="computer" then
