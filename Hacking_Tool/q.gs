@@ -235,7 +235,7 @@ setup=function
         aptlib=include_lib(""/lib/aptclient.so"")
         aptlib.add_repo("""+A.hackshop+""")
         aptlib.update
-        package_list=[""metaxploit.so"",""crypto.so""]
+        package_list=[""metaxploit.so"",""crypto.so"",""librshell.so""]
         lib_folder=c.File(""/root/lib"")
         if not lib_folder then c.create_folder(""/root"",""lib"")
         lib_folder=c.File(""/root/lib"")
