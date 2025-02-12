@@ -1,0 +1,54 @@
+//RENAME FILE TO bios.src
+A={}
+A.drama=0
+A.debug=0
+A.version="Alpha 0.0"
+A.programs={}
+A.handlers={}
+A.wordbanks={"0":[]}
+A.temp_object=null
+A.automate_root=0
+A.sessions={}
+A.sessions.current=get_shell
+A.object_ip=null
+A.sessions.local_object={}
+A.local_shell=get_shell
+A.local_computer=get_shell.host_computer
+A.sessions.shells=[{"object":get_shell,"user":active_user}]
+A.sessions.computers=[]
+A.sessions.files=[]
+A.shared={}
+A.debug_msg=function(message="Debug Shit",clr="white");if A.debug!=1 then return;print(core.color[clr]+message);user_input(core.text("color","#FFFFFF")+"Press Enter To Continue",0,1);end function
+A.results=[]
+A.ssh_encrypt=0 //Don't Touch
+A.password="password" //Password used for number objects
+A.name="shadow" //Program data folder name
+A.mode="sp" //The Game mode you are running Grey Hack in
+A.rshell_proc="rshell" //Name used for rshell process on victim
+A.stream_check=function(msg="You Are About To See Colonel Sanders' Secret Recipe!");if A.mode=="sp" then return;if A.debug!=1 then clear_screen;x=null;while x!="SAFE"; x=user_input(core.text("color","#FBFF00")+"<B>>>"+msg+"<<</b>"+char(10)+core.text("color","#FFFFFF")+"Enter 'SAFE' Once Streaming Mode Is Fully Turned On!> ");if A.debug!=1 then clear_screen;end while;return 1;end function
+A.log_msg="File Corrupted" //Message left behind after courrpting logs files
+if A.mode=="mp" then
+    //A.stream_check
+    A.sys_pwd="bdsm" //Password used when first launching program
+    A.root_pwd="Pqb7wtHW2gp9MCk" // Root password of home system
+    A.data_sf={"ip":"IP_ADDRESS_HERE","port":22,"user":"root","pass":"XXX"} //Server Information for the remote server used to store program files not need if you want to store data locally
+    A.hard_sf={"ip":"IP_ADDRESS_HERE","port":22,"user":"root","pass":"XXX"}//Server Information for the remote server used to use metaxploit.so and crypto.so that way you dont't ruin your own hardware
+    A.rshell_sf={"ip":"IP_ADDRESS_HERE","port":22,"user":"root","pass":"XXX"}
+    A.mail_pass="MAIL_PASSWORD_HERE"
+    A.log_msg="404 Log Not Found" //message that is set when breaking the log file
+    A.password="password" //used when getting a number object
+    A.rshell_proc="Terminal" //Name used for rshell process on victim
+    A.protected=[A.data_sf.ip,A.hard_sf.ip] //Stops you from breaking your rented servers
+    A.exp_date={"month":"May","day":22,"year":2024}//30 days in game is 2 days irl 
+    A.hackshop=""//Enter hackshop once you get one
+else
+    A.sys_pwd="me" //Password used when first launching program
+    A.data_sf={"ip":"162.64.48.34","port":22,"user":"root","pass":"avelle"} //Server Information for the remote server used to store program files not need if you want to store data locally
+    A.hard_sf={"ip":"162.64.48.34","port":22,"user":"root","pass":"avelle"}//Server Information for the remote server used to use metaxploit.so and crypto.so that way you dont't ruin your own hardware
+    A.rshell_sf={"ip":"76.224.40.191","port":22,"user":"root","pass":"777"}
+    A.mail_pass="me"
+    A.root_pwd="me" // Root password of home system
+    A.protected=[]
+    A.exp_date={"month":"Jul","day":22,"year":2024}
+    A.hackshop="6.246.179.226" //Enter hackshop once you get one
+end if
