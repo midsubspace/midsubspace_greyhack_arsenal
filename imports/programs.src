@@ -4,8 +4,7 @@ A.local_shit=function(shell=null)
     core.req_shell(shell)
     A.dropzone=null
     if A.protected.indexOf(shell.host_computer.public_ip)!=null then ;user_input(core.text("color","#FFFFFF")+"You Are Trying To Use Commands On  A Protected System!",0,1);return;end if
-    s=shell
-    if typeof(shell)=="shell" then c=s.host_computer
+    if typeof(shell)=="shell" then c=shell.host_computer
     A.shared_payload("create",shell)
     if A.dropzone==null then return
     bat=A.bat
@@ -822,6 +821,7 @@ A.programs.hack.run=function(params)//TODO test
         router=A.sessions.local_object["local_router"]
         ports=router.device_ports(ip)
         local=1
+        A.programs.nmap.run(["nmap",params[1]])
     else
         router=get_router(ip)
         ports=router.used_ports
