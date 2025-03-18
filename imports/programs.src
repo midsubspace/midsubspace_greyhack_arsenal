@@ -558,6 +558,15 @@ A.programs.nmap={"name":"nmap","desc":"Scans the Ports On A Network","usg":"IP",
 A.programs.nmap.run=function(params)//TODO test
     if params.len!=2 then;print core.text("color","#FFFFFF")+"nmap:No Address Given";A.cycle;end if
     ip=params[1]
+    if ip=="self" then
+        if typeof(A.sessions.current)=="shell" then 
+            ip=A.sessions.current.host_computer.local_ip
+        else if typeof(A.sessions.current)=="computer" then
+            ip=A.sessions.current.local_ip
+        else
+            ip=params[1]
+        end if
+    end if
     if not is_valid_ip(ip) then ip=nslookup(ip)
     if not is_valid_ip(ip) then;print core.text("color","#FFFFFF")+"nmap:Given Address:"+params[1]+" Is not valid!";A.cycle;end if
     if is_lan_ip(ip) then
