@@ -2,7 +2,7 @@ import_code("../imports/core.src")
 import_code("../imports/bios.src")
 import_code("../imports/cmd.src")
 import_code("../imports/programs.src")
-A.RID="YI19627O004510722532835328"
+A.RID="NH01YIEO3181990794756096"
 security=function
     if (get_shell.host_computer.get_name=="me" or get_shell.host_computer.get_name=="test") then
     A.master_shell=get_shell("root",A.root_pwd)
@@ -52,12 +52,12 @@ login=function
         if (p.command=="AdminMonitor" and (p.user=="me")) then ks=1
     end for
     if ks==0 then exit core.text("color","#ff0000")+"<b><align=center>CRITICAL SYSTEM ERROR: Kill Switch is "+core.text("color","#00ff00")+"ACTIVE"+char(10)+core.text("color","#FFFFFF")+"System functionality will be <b>"+core.text("color","#ff0000")+"DISABLED </b>"+core.text("color","#FFFFFF")+"until"+core.text("color","#e6e600")+" AdminMonitor.exe "+core.text("cap","color")+"is running."
-    if A.debug!=1 then print core.text("align","center")+"Sign On"
-    if A.debug!=1 then print core.text("align","center")+"System: ShadowBox01"
-    if A.debug!=1 then print core.text("align","center")+"Subsystem: SBASE"
-    if A.debug!=1 then print core.text("align","center")+"Display: DSP01"
-    if A.debug!=1 then print(core.text("align","center")+"User: Administrator")
-    if A.debug!=1 then
+    if A.debug!=1 and A.mode!="sp" then print core.text("align","center")+"Sign On"
+    if A.debug!=1 and A.mode!="sp" then print core.text("align","center")+"System: ShadowBox01"
+    if A.debug!=1 and A.mode!="sp" then print core.text("align","center")+"Subsystem: SBASE"
+    if A.debug!=1 and A.mode!="sp" then print core.text("align","center")+"Display: DSP01"
+    if A.debug!=1 and A.mode!="sp" then print(core.text("align","center")+"User: Administrator")
+    if A.debug!=1 and A.mode!="sp" then
         password=user_input(core.text("align","center")+"Password:",1)
         if password==A.sys_pwd then
             clear_screen
@@ -109,6 +109,14 @@ login=function
             print char(10)
             exit core.text("color","#ff0000")+"<b><align=center>CRITICAL SYSTEM ERROR: Password Invalid"+char(10)+core.text("color","#FFFFFF")+"The Password Entered Is Invalid.  System functionality will be <b>"+core.text("color","#AA0000")+"DISABLED </b>"+core.text("color","#FFFFFF")+"until a valid password is entered."
         end if
+    end if
+    if A.mode=="sp" then
+        A.sessions.master=A.master_shell
+        A.sessions.current=A.master_shell
+        boot
+        setup
+        clear_screen
+        A.cycle
     end if
 end function
 
