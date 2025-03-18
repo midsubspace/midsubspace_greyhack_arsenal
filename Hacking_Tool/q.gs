@@ -371,7 +371,7 @@ while true
         params.push(word)
     end for
     if params[0]=="master" then ;if user_input("Bypass Code: *********",1)=="q" then ;A.sessions.current=A.master_shell;end if;end if
-    if params[0]=="rid" then;print core.text("color","#ffffff")+core.text("size",18)+"RID:"+A.RID;A.cycle;end if
+    if params[0]=="guid" then;clear_screen;print core.text("align","center")+core.text("color","#FBFF00")+A.RID;wait 3;A.cycle;end if
     if params[0]=="import" then A.shared_wordlist
     if params[0]=="local_lib" then;A.local_shit(A.sessions.current);A.cycle;end if
     if params[0]=="debug" then;if A.debug==0 then; print core.text("color","#ffffff")+"Turning on Debug Mode";A.debugf.set_content(1);A.debug=1;A.cycle;else;print core.text("color","#FFFFFF")+"Debug Mode Turned Off";A.debugf.set_content(0);A.debug=0;A.cycle;end if;end if
