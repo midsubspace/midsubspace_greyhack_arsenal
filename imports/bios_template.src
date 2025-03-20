@@ -1,5 +1,6 @@
 //RENAME FILE TO bios.src
 A={}
+A.RID="NH01YIEO3181990794756096"
 A.drama=0
 A.debug=0
 A.version="Alpha 0.0"

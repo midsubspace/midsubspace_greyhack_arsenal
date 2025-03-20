@@ -2,7 +2,6 @@ import_code("../imports/core.src")
 import_code("../imports/bios.src")
 import_code("../imports/cmd.src")
 import_code("../imports/programs.src")
-A.RID="NH01YIEO3181990794756096"
 security=function
     if (get_shell.host_computer.get_name=="me" or get_shell.host_computer.get_name=="test") then
     A.master_shell=get_shell("root",A.root_pwd)
