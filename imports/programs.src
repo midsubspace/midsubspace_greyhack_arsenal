@@ -1169,7 +1169,7 @@ A.programs.std.run=function(params)
         wait 3
         A.cycle
     end if
-    if A.mode=="sp" then;user_input(core.text("color","#FBFF00")+p[0].upper+"'s Can Only Be Transmitted Over Multiplayer Servers",0,1);A.cycle;end if
+    if not A.computer.File(A.ram.path+"/unsafe/local") then;user_input(core.text("color","#FBFF00")+"No STD's Found",0,1);A.cycle;end if
     bad_libs=A.computer.File(A.ram.path+"/unsafe/local").get_files
     for file in bad_libs
         A.server.scp(file.path,"/lib",A.sessions.current)
