@@ -19,7 +19,6 @@ A.sessions.shells=[{"object":get_shell,"user":active_user}]
 A.sessions.computers=[]
 A.sessions.files=[]
 A.shared={}
-A.debug_msg=function(message="Debug Shit",clr="white");if A.debug!=1 then return;print(core.color[clr]+message);user_input(core.text("color","#FFFFFF")+"Press Enter To Continue",0,1);end function
 A.results=[]
 A.ssh_encrypt=0 //Don't Touch
 A.password="password" //Password used for number objects

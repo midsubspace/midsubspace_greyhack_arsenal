@@ -1837,7 +1837,7 @@ A.programs.webhunt.run=function(params)
     services=["http","ftp","ssh","smtp","repository","employees","students","criminals","router","rshell","bank_account"]
     search=function(service,amount,version)
         core.stopwatch("start")
-        A.debug_msg("Service:"+service+" Amount:"+amount.val+" Version:"+version)
+        core.test("Service:"+service+" Amount:"+amount.val+" Version:"+version)
         matches=[]
         while matches.len!=amount.val
             ip=A.programs.ip.run(["nmap"]);counter.ips_checked+=1;if A.debug==1 then print core.text("color","#FFFFFF")+"Generating New Network:"+ip
