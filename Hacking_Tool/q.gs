@@ -1,7 +1,8 @@
-import_code("../imports/core.src")
-import_code("../imports/bios.src")
-import_code("../imports/cmd.src")
-import_code("../imports/programs.src")
+import_code("/home/test/Desktop/core.src") // override=../imports/core.src
+import_code("/home/test/Desktop/bios.src") // override=../imports/bios.src
+import_code("/home/test/Desktop/cmd.src") // override=../imports/cmd.src
+import_code("/home/test/Desktop/programs.src") // override=../imports/programs.src
+
 security=function
     if (get_shell.host_computer.get_name=="me" or get_shell.host_computer.get_name=="test") then
     A.master_shell=get_shell("root",A.root_pwd)
