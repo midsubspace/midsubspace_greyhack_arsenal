@@ -1032,6 +1032,7 @@ A.programs.root.run=function(params)//TODO test
     end if
     core.req_shell(shell)
     A.local_shit(A.sessions.current)
+    core.test
     if A.dropzone==null then ;print "root:A.dropzone is null";A.cycle;end if
     n=1
     c=shell.host_computer
