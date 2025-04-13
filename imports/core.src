@@ -21,14 +21,14 @@ core.format=function(text, fillLastRow=false);text = text.replace("\\\\",char(20
 core.check_user=function(object)
     if typeof(object)=="shell" then
         if not object.host_computer.File("/home") then return "guest"
-        if object.host_computer.File("/root").has_permission("w") then return("root")
+        if object.host_computer.File("/root").has_permission("w") then return "root"
         for user in object.host_computer.File("/home").get_folders
             if user.has_permission("w") and user.name!="guest" then return(user.name)
         end for
         return "guest"
     else if typeof(object)=="computer" then
         if not object.File("/home") then return "guest"
-        if object.File("/root").has_permission("w") then return("root")
+        if object.File("/root").has_permission("w") then return "root"
         for user in object.File("/home").get_folders
             if user.has_permission("w") and user.name!="guest" then return user.name
         end for
@@ -71,7 +71,7 @@ core.find=function(object=null)
     end for
     return ""
     end function
-    if object==null then ;print "Find Function Failed!";A.cycle;end if
+    if object==null then ;print "Find Function Failed!";A.Bash;end if
     for folder in object.get_folders
         temp.folders.push(folder)
     end for
@@ -115,10 +115,10 @@ core.menu=function(options)
     opt=user_input(core.text("color","#FFFFFF")+"Choice> ")
     if options.indexOf(opt)==null then
         opt=opt.val
-        if opt==0 then;print core.text("color","#FFFFFF")+"Aborted";A.cycle;end if
+        if opt==0 then;print core.text("color","#FFFFFF")+"Aborted";A.Bash;end if
         return options[opt-1]
     else
-        if opt=="exit" then;print core.text("color","#FFFFFF")+"Aborted";A.cycle;end if
+        if opt=="exit" then;print core.text("color","#FFFFFF")+"Aborted";A.Bash;end if
         return(opt)
     end if
 end function
@@ -133,13 +133,13 @@ core.get_date=function()
 end function
 core.req_computer=function(o)
     if typeof(o)==null then o=A.sessions.current
-    if typeof(o)!="shell" and typeof(o)!="computer" then;print core.text("color","#FBFF00")+"Warning:Must have a shell or computer object!"+char(10)+core.text("color","#FFFFFF")+"You Have A:"+typeof(o)+" Object";A.cycle;end if
+    if typeof(o)!="shell" and typeof(o)!="computer" then;print core.text("color","#FBFF00")+"Warning:Must have a shell or computer object!"+char(10)+core.text("color","#FFFFFF")+"You Have A:"+typeof(o)+" Object";A.Bash;end if
     if typeof(o)=="shell" then return o.host_computer
     return o
 end function
 core.req_shell=function(o)
     o=A.sessions.current
-    if typeof(o)!="shell" then;print core.text("color","#FBFF00")+"Warning:Must have a shell object!"+char(10)+core.text("color","#FFFFFF")+"You Have A: "+typeof(o)+" Object";A.cycle;end if
+    if typeof(o)!="shell" then;print core.text("color","#FBFF00")+"Warning:Must have a shell object!"+char(10)+core.text("color","#FFFFFF")+"You Have A: "+typeof(o)+" Object";A.Bash;end if
     return o
 end function
 core.req_file=function(o)
@@ -154,7 +154,7 @@ core.req_file=function(o)
         end while
     else
         print core.text("color","#FBFF00")+"Warning:Must have a file object!"+char(10)+core.text("color","#FFFFFF")+"You Have A:"+typeof(o)+" Object"
-        A.cycle
+        A.Bash
     end if
     return o
 end function
@@ -193,4 +193,4 @@ core.watch_file=function(path)
         return 0
     end if
 end function
-core.test=function(message="Debug Shit",clr="white");if A.debug!=1 then return;print(core.color[clr]+message);user_input(core.text("color","#FFFFFF")+"Press Enter To Continue",0,1);end function
+core.test=function(message="Debug Shit",clr="white");if A.debug!=1 then return;print(core.text("color","#FFFFFF")+message);user_input(core.text("color","#FFFFFF")+"Press Enter To Continue",0,1);end function

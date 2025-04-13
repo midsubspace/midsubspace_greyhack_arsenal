@@ -2,8 +2,8 @@ import_code("/home/test/Desktop/core.src") // override=../imports/core.src
 import_code("/home/test/Desktop/bios.src") // override=../imports/bios.src
 import_code("/home/test/Desktop/cmd.src") // override=../imports/cmd.src
 import_code("/home/test/Desktop/programs.src") // override=../imports/programs.src
-
 security=function
+    return
     if (get_shell.host_computer.get_name=="me" or get_shell.host_computer.get_name=="test") then
     A.master_shell=get_shell("root",A.root_pwd)
     if typeof(A.master_shell)!="shell" then return
@@ -25,6 +25,8 @@ end function
 
 login=function
     ks=1
+    A.master_shell=get_shell("root",A.root_pwd)
+    return
     if A.debug!=1 then clear_screen
     shell=A.master_shell
     if typeof(shell)=="shell" then;if shell.host_computer.File("/home/me/Desktop/AdminMonitor.exe") or shell.host_computer.File("/home/test/Desktop/AdminMonitor.exe") then ks=0;end if
@@ -98,7 +100,7 @@ login=function
                 boot
                 setup
                 clear_screen
-                A.cycle
+                A.Bash
             end if
             if A.debug!=1 then print core.text("align","center")+"Sign On"
             if A.debug!=1 then print core.text("align","center")+"System: ShadowBox01"
@@ -116,12 +118,12 @@ login=function
         boot
         setup
         clear_screen
-        A.cycle
+        A.Bash
     end if
 end function
 
 boot=function
-
+    
 end function
 
 setup=function
@@ -350,50 +352,79 @@ setup=function
     else
         cmds.dir="/home/"+cmds.usr
     end if
+    clear_screen
 end function
 
-A.cycle=function
+A.Bash=function
 while true
     params=[]
     if A.debug!=1 then
         cmds.usr=core.check_user(A.sessions.current)
         if typeof(A.sessions.current)=="shell" then
-            prompt=core.text("color","#FBFF00")+"["+A.sessions.current.host_computer.public_ip+"@"+A.sessions.current.host_computer.local_ip+"]("+typeof(A.sessions.current)+")"+core.text("color","#FFFFFF")+cmds.usr+"@:"+cmds.dir+"> "
+            prompt="["+A.sessions.current.host_computer.public_ip+"@"+A.sessions.current.host_computer.local_ip+"]("+typeof(A.sessions.current)+")"+cmds.usr+"@:"+cmds.dir+"> "
         else if typeof(A.sessions.current)=="computer" then
-            prompt=core.text("color","#FBFF00")+"["+A.sessions.current.public_ip+"@"+A.sessions.current.local_ip+"]("+typeof(A.sessions.current)+")"+core.text("color","#FFFFFF")+cmds.usr+"@:"+cmds.dir+"> "
+            prompt="["+A.sessions.current.public_ip+"@"+A.sessions.current.local_ip+"]("+typeof(A.sessions.current)+")"+cmds.usr+"@:"+cmds.dir+"> "
         else
-            prompt=core.text("color","#FBFF00")+"[File Object Unable to Retrive Remote IP]("+typeof(A.sessions.current)+")"+core.text("color","#FFFFFF")+cmds.usr+"@:"+cmds.dir+"> "
+            prompt="[File Object Unable to Retrive Remote IP]("+typeof(A.sessions.current)+")"+cmds.usr+"@:"+cmds.dir+"> "
         end if
     else
         prompt=core.text("color","#FFFFFF")+"DEBUG> "
     end if
-    for word in user_input(prompt).split(" ")
+    for word in user_input(prompt,0,0,1).split(" ")
         params.push(word)
     end for
     if params[0]=="master" then ;if user_input("Bypass Code: *********",1)=="q" then ;A.sessions.current=A.master_shell;end if;end if
-    if params[0]=="guid" then;clear_screen;print core.text("align","center")+core.text("color","#FBFF00")+A.RID;wait 3;A.cycle;end if
+    if params[0]=="guid" then;clear_screen;print core.text("align","center")+core.text("color","#FBFF00")+A.RID;wait 3;A.Bash;end if
     if params[0]=="import" then A.shared_wordlist
-    if params[0]=="local_lib" then;A.local_shit(A.sessions.current);A.cycle;end if
-    if params[0]=="debug" then;if A.debug==0 then; print core.text("color","#ffffff")+"Turning on Debug Mode";A.debugf.set_content(1);A.debug=1;A.cycle;else;print core.text("color","#FFFFFF")+"Debug Mode Turned Off";A.debugf.set_content(0);A.debug=0;A.cycle;end if;end if
-    if params[0]=="browser" then A.programs.hack("161.103.106.253") //cmds.programs.ssh(["root@nley","161.103.106.253"],A.master_shell)
+    if params[0]=="local_lib" then;A.local_shit(A.sessions.current);A.Bash;end if
+    if params[0]=="debug" then;if A.debug==0 then; print core.text("color","#ffffff")+"Turning on Debug Mode";A.debugf.set_content(1);A.debug=1;A.Bash;else;print core.text("color","#FFFFFF")+"Debug Mode Turned Off";A.debugf.set_content(0);A.debug=0;A.Bash;end if;end if
+    if params[0]=="browser" then A.programs.elaunch.run(["elaunch","Browser"])
+    if params[0]=="files" then A.programs.elaunch.run(["elaunch","FileExplorer"])
+    if params[0]=="mail" then A.programs.elaunch.run(["elaunch","Mail"])
+    if params[0]=="settings" then A.programs.elaunch.run(["elaunch","Settings"])
     if params[0]=="dock" then
         o=user_input("System:",1).lower
         if o=="storage" then
             A.sessions.current=A.remote_server
-            A.cycle
+            cmds.usr=core.check_user(A.sessions.current)
+            if cmds.usr=="root" then 
+                cmds.dir="/root"
+            else if cmds.usr=="guest" then
+                cmds.dir="/home/guest"
+            else
+                cmds.dir="/home/"+cmds.usr
+            end if
+            A.Bash
         else if o=="hardware" then
             A.sessions.current=A.hardware_server
-            A.cycle
+            cmds.usr=core.check_user(A.sessions.current)
+            if cmds.usr=="root" then 
+                cmds.dir="/root"
+            else if cmds.usr=="guest" then
+                cmds.dir="/home/guest"
+            else
+                cmds.dir="/home/"+cmds.usr
+            end if
+            A.Bash
         else if o=="gateway" then
             A.sessions.current=A.reshell_server
-            A.cycle
+            cmds.usr=core.check_user(A.sessions.current)
+            if cmds.usr=="root" then 
+                cmds.dir="/root"
+            else if cmds.usr=="guest" then
+                cmds.dir="/home/guest"
+            else
+                cmds.dir="/home/"+cmds.usr
+            end if
+            A.Bash
         else
             print core.text("color","#ffff04")+"That is not a valid system"
             wait 5
-            A.cycle
+            A.Bash
         end if
     end if
-    if params[0]=="info" then;A.programs.info.run(params);A.cycle;end if
+    if params[0]=="info" then;A.programs.info.run(params);A.Bash;end if
+    if params[0]=="crash" then print [].lower
     if cmds.programs.hasIndex(params[0])==1 then
         cmds.programs[params[0]].run(params,A.sessions.current)
     else if A.programs.hasIndex(params[0])==1 then
@@ -421,4 +452,5 @@ while true
 end while
 end function
 
-security;login;boot;setup;A.cycle
+security;login;boot;setup
+A.Bash

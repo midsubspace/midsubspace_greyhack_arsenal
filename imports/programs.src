@@ -27,7 +27,6 @@ A.local_shit=function(shell=null)
         if A.sessions.local_object.len>0 then
             if typeof(A.sessions.local_object["local_meta"])!="MetaxploitLib" then;user_input(core.text("color","#AA0000")+"Failed Getting Local Meta");else;print (core.text("color","#FFFFFF")+"Got Local Meta");end if
             if typeof(A.sessions.local_object["local_router"])!="router" then;user_input(core.text("color","#AA0000")+"Failed Getting Local Router");else;print (core.text("color","#FFFFFF")+"Got Local Router");end if
-            if A.debug!=1 then clear_screen
         end if
         A.shared_payload("clean")
 end function
@@ -88,6 +87,7 @@ A.shared_exploit_DB=function(mode="load",mlib=null,m=null,value=null)
         fldm=0
         flim=0
         for folder in DB_dir.get_folders
+            wait 0.1
             if folder.name==mlib.lib_name then
                 fldm=1
                 for file in folder.get_files
@@ -99,7 +99,7 @@ A.shared_exploit_DB=function(mode="load",mlib=null,m=null,value=null)
                             file.set_content(file.get_content+char(10)+m+":"+value)
                         end if
                     end if
-                    if A.mode=="mp" then wait 0.1
+                    wait 0.1
                 end for
             end if
         end for
@@ -114,6 +114,7 @@ A.shared_exploit_DB=function(mode="load",mlib=null,m=null,value=null)
         flim=0
         found=[]
         for folder in DB_dir.get_folders
+            if mlib==null then return
             if folder.name==mlib.lib_name then
                 fldm=1
                 for file in folder.get_files
@@ -144,6 +145,7 @@ A.shared_hack=function(mlib=null,third="$",metaxploit=null)
                 if a==add[0] then continue
                 value=a[a.indexOf("<b>")+3:a.indexOf("</b>")]
                 value=value.replace(char(10),"")
+                wait 0.1
                 if A.debug==1 then print core.text("color","#FBFF00")+"m:"+m+"-"+"value:"+value
                 A.shared_exploit_DB("save",mlib,m,value)
                 result=mlib.overflow(m,value,third)
@@ -172,22 +174,23 @@ end function
 A.shared_payload=function(mode="create",object=null)
     create=function(object)
         if typeof(object)!="shell" then return
-        if A.debug!=0 then print "Creating Payload"
+        if A.debug==1 then print "Creating Payload"
         if object==null then object=A.sessions.current
-        
         temp=core.find(object.host_computer.File("/"))
         A.payload_name="dcall"
         A.dropzone=null
         for folder in temp.folders
+            wait 0.1
             if A.dropzone!=null then continue
             if folder.has_permission("w") then A.dropzone=folder
         end for
         if A.dropzone==null then return
         object.host_computer.touch(A.dropzone.path,A.payload_name+".src")
         if A.debug==1 then user_input(core.text("color","#FFFFFF")+"Dropzone Path:"+A.dropzone.path,0,1)
+        wait 0.1
         batch_file=object.host_computer.File(A.dropzone.path+"/"+A.payload_name+".src")
         if typeof(batch_file)=="file" then A.bat=batch_file
-        if A.debug!=0 then print "Payload Created"
+        if A.debug==1 then print "Payload Created"
     end function
     clean=function(object)
         if typeof(object)!="shell" then return
@@ -233,7 +236,7 @@ A.programs.info={"name":"info","desc":"Prints system infomation","usg":"XXX","re
 A.programs.info.run=function(params)
     if A.debug!=1 then clear_screen;hide=1;if A.debug==1 and A.stream==0 then hide=0
     print core.text("color","#FFFFFF")+"Imported Player Config File";print core.text("color","#FFFFFF")+"Imported "+core.len+" Core Function(s)";print core.text("color","#FFFFFF")+"Imported "+A.programs.len+" Custom Command(s)";print core.text("color","#FFFFFF")+"Imported "+cmds.programs.len+" Terminal Command(s)";print core.text("color","#FFFFFF")+"GUID:"+core.text("color","#FBFF00")+A.RID;print core.text("color","#FFFFFF")+"System Time:"+core.get_date.month+"-"+core.get_date.day+"-"+core.get_date.year+" "+core.get_date.time;print core.text("color","#FFFFFF")+"This Version is valid until:"+core.text("color","#FBFF00")+A.exp_date.month+"-"+A.exp_date.day+"-"+A.exp_date.year;print core.text("color","#FFFFFF")+"Thank You For Using "+core.text("color","#FBFF00")+program_path.split("/").pop;print core.text("color","#FFFFFF")+"Created By: "+core.text("color","#FBFF00")+"me";print core.text("color","#FFFFFF")+"You Are Running Version: "+core.text("color","#FBFF00")+A.version
-    if params.len==1 then A.cycle
+    if params.len==1 then A.Bash
     if params.len>0 and params[1]=="-show" then;hide=0;print core.text("color","#FFFFFF")+"Imported Player Config File";print core.text("color","#FFFFFF")+"Imported "+core.len+" Core Function(s)";print core.text("color","#FFFFFF")+"Imported "+A.programs.len+" Custom Command(s)";print core.text("color","#FFFFFF")+"Imported "+cmds.programs.len+" Terminal Command(s)";print core.text("color","#FFFFFF")+"GUID:"+core.text("color","#FBFF00")+A.RID;print core.text("color","#FFFFFF")+"System Time:"+core.get_date.month+"-"+core.get_date.day+"-"+core.get_date.year+" "+core.get_date.time;print core.text("color","#FFFFFF")+"This Version is valid until:"+core.text("color","#FBFF00")+A.exp_date.month+"-"+A.exp_date.day+"-"+A.exp_date.year;print core.text("color","#FFFFFF")+"Thank You For Using "+core.text("color","#FBFF00")+program_path.split("/").pop;print core.text("color","#FFFFFF")+"Created By: "+core.text("color","#FBFF00")+"me";print core.text("color","#FFFFFF")+"You Are Running Version: "+core.text("color","#FBFF00")+A.version;end if
     if A.computer.is_network_active==0 then;print core.text("color","#FFFFFF")+"INTERNET STATUS: "+core.text("color","#AA0000")+"Offline";else;print core.text("color","#FFFFFF")+"INTERNET STATUS: "+core.text("color","#00ED03")+"Online";end if
     if A.server_type=="remote" then;print core.text("color","#FFFFFF")+"WAREHOUSE STATUS: "+core.text("color","#00ED03")+"Remote";if hide==0 then print core.text("color","#FFFFFF")+"WareHouse IP: "+core.text("color","#FBFF00")+A.remote_server.host_computer.public_ip+char(10)+core.text("color","#FFFFFF")+"DATA PATH:"+A.ram.path;else;print core.text("color","#FFFFFF")+"SERVER STATUS: "+core.text("color","#00ED03")+"Local";end if
@@ -297,7 +300,7 @@ A.programs.local.run=function(params)//TODO test
     if not A.sessions.current.host_computer.File(A.dropzone.path+"/metaxploit.so") then s=A.hardware_server.scp("/root/lib/metaxploit.so",A.dropzone.path,A.sessions.current)
     local_meta=A.sessions.local_object["local_meta"]
     A.MetaLibs=[]
-    if typeof(local_meta)!="MetaxploitLib" then;print core.text("color","#FFFFFF")+"local:Metaxploit not found please run 'update [local]'";A.cycle;end if
+    if typeof(local_meta)!="MetaxploitLib" then;print core.text("color","#FFFFFF")+"local:Metaxploit not found please run 'update [local]'";A.Bash;end if
     local_nmap=function
         c=A.sessions.current.host_computer
         data="# Service Version"
@@ -308,6 +311,8 @@ A.programs.local.run=function(params)//TODO test
             metalib=local_meta.load(lib)
             if typeof(metalib)=="MetaLib" then
                 A.MetaLibs.push(metalib)
+                print typeof(metalib)
+                core.test("Line 311")
                 data=data+char(10)+n+" "+metalib.lib_name+" "+metalib.version
                 n+=1
             end if
@@ -336,8 +341,9 @@ A.programs.local.run=function(params)//TODO test
     end if
     A.results=[]
     for metalib in A.MetaLibs
-        if A.debug==1 then print core.text("color","#003AFF")+typeof(metalib+":"+metalib.lib_name)
+        if A.debug==1 then print core.text("color","#003AFF")+typeof(metalib+" 343 :"+metalib.lib_name)
         if typeof(metalib)!="MetaLib" then continue
+        if typeof(metalib)==null then continue
         A.shared_hack(metalib,third)
     end for
     if A.results.len>0 then A.object_sorter
@@ -352,7 +358,7 @@ A.programs.find.run=function(params)//TODO test
         mode=0
     else
         print core.text("color","#FFFFFF")+"core.find:"+A.programs.find.usg
-        A.cycle
+        A.Bash
     end if
     metalibs={}
     cryptolibs={}
@@ -556,7 +562,15 @@ A.programs.update.run=function(params)
 end function
 A.programs.nmap={"name":"nmap","desc":"Scans the Ports On A Network","usg":"IP","req":"file"}
 A.programs.nmap.run=function(params)//TODO test
-    if params.len!=2 then;print core.text("color","#FFFFFF")+"nmap:No Address Given";A.cycle;end if
+    if params.len!=2 then
+        if typeof(A.sessions.current)=="shell" then
+            params.push(A.sessions.current.host_computer.public_ip)
+        else if typeof(A.sessions.current)=="computer" then
+            params.push(A.sessions.current.public_ip)
+        else
+            A.Bash
+        end if
+    end if
     ip=params[1]
     if ip=="self" then
         if typeof(A.sessions.current)=="shell" then 
@@ -580,21 +594,21 @@ A.programs.nmap.run=function(params)//TODO test
         end if
     end if
     if not is_valid_ip(ip) then ip=nslookup(ip)
-    if not is_valid_ip(ip) then;print core.text("color","#FFFFFF")+"nmap:Given Address:"+params[1]+" Is not valid!";A.cycle;end if
+    if not is_valid_ip(ip) then;print core.text("color","#FFFFFF")+"nmap:Given Address:"+params[1]+" Is not valid!";A.Bash;end if
     if is_lan_ip(ip) then
         A.local_shit(A.sessions.current)
         router=A.sessions.local_object["local_router"]
     else
         router=get_router(ip)
     end if
-    if router==null then;print core.text("color","#FFFFFF")+"nmap:Router Does Not Exist On "+params[1];A.cycle;end if
+    if router==null then;print core.text("color","#FFFFFF")+"nmap:Router Does Not Exist On "+params[1];A.Bash;end if
     if is_lan_ip(ip) then
         ports=router.device_ports(ip)
     else
         ports=router.used_ports
     end if
-    if ports==null then;print core.text("color","#FFFFFF")+"nmap:No Ports Found On "+params[1];A.cycle;end if 
-    if typeof(ports)=="string" then;print core.text("color","#FFFFFF")+"nmap:Error Getting Ports:"+ports;A.cycle;end if
+    if ports==null then;print core.text("color","#FFFFFF")+"nmap:No Ports Found On "+params[1];A.Bash;end if 
+    if typeof(ports)=="string" then;print core.text("color","#FFFFFF")+"nmap:Error Getting Ports:"+ports;A.Bash;end if
     if ports.len==0 then;print core.text("color","#FBFF00")+"Scan Finished, No Open Ports Found"+char(10)+"You can only hack port 0";end if
     firewall_map=function(ip)
         firewalls=router.firewall_rules
@@ -692,6 +706,7 @@ A.programs.ip.run=function(params)//TODO test
     ip=ip_gen
     while not is_valid_ip(ip)
         ip=ip_gen
+        if A.mode=="mp" then wait 0.1
     end while
     router=get_router(ip)
     while router==null or typeof(router)==null or whois(ip)=="Address not found!"
@@ -823,7 +838,15 @@ A.object_sorter=function(ip)//TODO test
         A.object_sorter(ip)
     end if
     A.sessions.current=result
-    A.cycle
+    cmds.usr=core.check_user(A.sessions.current)
+    if cmds.usr=="root" then 
+        cmds.dir="/root"
+    else if cmds.usr=="guest" then
+        cmds.dir="/home/guest"
+    else
+        cmds.dir="/home/"+cmds.usr
+    end if
+    A.Bash
 end function
 A.programs.hack={"name":"hack","desc":"Remotly Hack a System","usg":"ip_address","req":"file"}
 A.programs.hack.run=function(params)//TODO test
@@ -831,7 +854,7 @@ A.programs.hack.run=function(params)//TODO test
     if params.len!=2 then 
         print core.text("color","#ffffff")+"Hack [IP/website url]"
         wait 3
-        A.cycle
+        A.Bash
     end if
     ip=A.programs.nmap.run(["nmap",params[1]])
     target_port=null
@@ -860,7 +883,7 @@ A.programs.hack.run=function(params)//TODO test
             target_port=user_input(core.text("color","#FFFFFF")+"Port# ")
         else if action=="hack all ports" and ports.len!=0 then
             A.programs.auto_hack.run(["auto_hack",ip])
-            A.cycle
+            A.Bash
         end if
     end if
     A.results=[]
@@ -889,7 +912,7 @@ A.programs.hack.run=function(params)//TODO test
     else 
         print core.text("color","#FFFFFF")+A.results
         print core.text("color","#AA0000")+"No Results Found"
-        A.cycle
+        A.Bash
     end if
 end function
 A.programs.auto_hack={"name":"auto_hack","desc":"Hacks All Ports On a Target","usg":"ip_address","req":"file"}
@@ -980,7 +1003,7 @@ A.programs.addons.run=function(params)//TODO test
                 r=get_shell.scp("/root/"+target,addon_folder.path,A.server)
                 if typeof(r)=="string" then
                     print core.text("color","#FFFFFF")+"There was an error when uploading "+target+":"+r
-                    A.cycle
+                    A.Bash
                 else
                     print core.text("color","#FFFFFF")+"File:"+file.name+" has been added to the warehouse"
                     file.delete
@@ -1002,7 +1025,7 @@ A.programs.addons.run=function(params)//TODO test
                 if i.name==target then action=n
                 n+=1
             end for
-            if action==null then;print core.text("color","#FFFFFF")+target+" Not A Valid Addon!";A.cycle;end if
+            if action==null then;print core.text("color","#FFFFFF")+target+" Not A Valid Addon!";A.Bash;end if
         end if
     end if
     if typeof(A.server)=="shell" then get_custom_object["server"]=A.server
@@ -1033,11 +1056,13 @@ A.programs.root.run=function(params)//TODO test
     core.req_shell(shell)
     A.local_shit(A.sessions.current)
     core.test
-    if A.dropzone==null then ;print "root:A.dropzone is null";A.cycle;end if
+    if A.dropzone==null then ;print "root:A.dropzone is null";A.Bash;end if
     n=1
     c=shell.host_computer
+    A.shared_wordlist
     shitbook=A.wordbanks["0"]
-    if shitbook==[] then 
+    if shitbook==[] then
+        core.test("SHitBOOK BLANK") 
         A.shared_hack
         shitbook=A.wordbanks["0"]
     end if
@@ -1046,7 +1071,7 @@ A.programs.root.run=function(params)//TODO test
         A.shared_payload("create")
         bat=A.bat
         file=A.bat
-        if not file then;print core.text("color","#FFFFFF")+"root:Unable to create payload at "+A.dropzone.path+"/"+A.payload_name+".src";A.cycle;end if
+        if not file then;print core.text("color","#FFFFFF")+"root:Unable to create payload at "+A.dropzone.path+"/"+A.payload_name+".src";A.Bash;end if
         if file then file.set_content("user=get_custom_object[""sudo_user""]"+char(10)+"password=get_custom_object[""sudo_password""]"+char(10)+"shell=get_shell(user,password)"+char(10)+"if typeof(shell)==""shell"" then"+char(10)+"get_custom_object[""sudo_shell""]=shell"+char(10)+"else"+char(10)+"get_custom_object[""sudo_shell""]=null"+char(10)+"end if")
         buildResult = shell.build(A.dropzone.path+"/"+A.payload_name+".src",A.dropzone.path)
     end if
@@ -1064,7 +1089,7 @@ A.programs.root.run=function(params)//TODO test
                 A.sessions.current=get_custom_object["sudo_shell"]
                 core.stopwatch("stop","to get root access")
                 A.shared_payload("clean")
-                A.cycle
+                A.Bash
             end if
         end if
     end if
@@ -1073,11 +1098,7 @@ A.programs.root.run=function(params)//TODO test
     print shitbook
     core.stop
     for line in shitbook
-        if A.mode=="mp" then
-            print(core.text("color","#FFFFFF")+pwd_total)
-        else
-            print "Gone Fishing",1
-        end if
+        print(core.text("color","#FFFFFF")+pwd_total)
         get_custom_object["sudo_user"]="root"
         get_custom_object["sudo_password"]=line
         shell.launch(A.dropzone.path+"/"+A.payload_name)
@@ -1087,9 +1108,9 @@ A.programs.root.run=function(params)//TODO test
             A.sessions.current=r
             core.stopwatch("stop","to get root access")
             A.shared_payload("clean")
-            A.cycle
+            A.Bash
         end if
-        if not shell.host_computer.File("/home") then;print core.text("color","#FFFFFF")+"root:/Home Not Found!";A.cycle;end if
+        if not shell.host_computer.File("/home") then;print core.text("color","#FFFFFF")+"root:/Home Not Found!";A.Bash;end if
         for user in shell.host_computer.File("/home").get_folders
             if user=="guest" then continue
             get_custom_object["sudo_user"]=user.name
@@ -1111,7 +1132,7 @@ A.programs.root.run=function(params)//TODO test
                             endtime=core.convert_time(time-starttime)
                             print core.text("color","#FFFFFF")+"It took "+endtime["hour"]+" Hour(s):"+endtime["min"]+" Min(s):"+endtime["sec"]+" Sec(s) to get root access"
                             A.shared_payload("clean")
-                            A.cycle
+                            A.Bash
                         end if
                     end if
                 end if
@@ -1126,13 +1147,13 @@ A.programs.root.run=function(params)//TODO test
     A.automate_root=0
     endtime=core.convert_time(time-A.startime)
     print core.text("color","#FFFFFF")+"It took "+endtime["hour"]+" Hour(s):"+endtime["min"]+" Min(s):"+endtime["sec"]+" Sec(s) to fail getting root access"
-    A.cycle
+    A.Bash
 end function
 A.programs.gui={"name":"gui","desc":"Install GUI Tools","usg":"XXX","req":"shell"}
 A.programs.gui.run=function(params)//TODO test
     core.req_shell(A.sessions.current)
     n=0
-    if not A.computer.File("/usr/bin") then;core.text("color","#FFFFFF")+"gui:No programs found in /usr/bin in the warehouse";A.cycle;end if
+    if not A.computer.File("/usr/bin") then;core.text("color","#FFFFFF")+"gui:No programs found in /usr/bin in the warehouse";A.Bash;end if
     for file in A.computer.File("/usr/bin").get_files
         print n+") "+file.name
         n=n+1
@@ -1168,9 +1189,9 @@ A.programs.std.run=function(params)
     if  not A.sessions.current.host_computer.File("/lib").has_permission("w") then 
         print core.text("color","#FFFFFF")+"Must Have Write Perms for /lib!"
         wait 3
-        A.cycle
+        A.Bash
     end if
-    if not A.computer.File(A.ram.path+"/unsafe/local") then;user_input(core.text("color","#FBFF00")+"No STD's Found",0,1);A.cycle;end if
+    if not A.computer.File(A.ram.path+"/unsafe/local") then;user_input(core.text("color","#FBFF00")+"No STD's Found",0,1);A.Bash;end if
     bad_libs=A.computer.File(A.ram.path+"/unsafe/local").get_files
     for file in bad_libs
         A.server.scp(file.path,"/lib",A.sessions.current)
@@ -1209,7 +1230,7 @@ A.programs.rainbow.run=function(params)//TODO test
         output=0
     else
         print core.text("color","#FFFFFF")+"rainbow:mode[hash,ssh,ftp,mail,wifi] ip[string] user[string]"
-        A.cycle
+        A.Bash
     end if
     pwd_total=A.wordbanks["0"].len
     if A.drama==1 then
@@ -1241,7 +1262,7 @@ A.programs.rainbow.run=function(params)//TODO test
                         user=line+domain
                         print(core.text("color","#FFFFFF")+pwd_total,1)
                         test_email=mail_login(user,word)
-                        if typeof(test_email)=="MetaMail" then;print core.text("color","#FFFFFF")+user+" : "+word;A.cycle;end if
+                        if typeof(test_email)=="MetaMail" then;print core.text("color","#FFFFFF")+user+" : "+word;A.Bash;end if
                         pwd_total=pwd_total-1
                     end for
                 end for
@@ -1249,13 +1270,13 @@ A.programs.rainbow.run=function(params)//TODO test
             print core.text("color","#FFFFFF")+"Failed To core.find user on "+domain;return
     end if
     for word in A.wordbanks["0"]
-        if mode!="ssh" then
+        //if mode!="ssh" then
             if A.mode=="mp" then
                 print(pwd_total,true)
             else
                 print(pwd_total,true)
             end if
-        end if
+        //end if
         if word=="" or word==" " then continue
         if mode=="ssh" then
             if typeof(A.fake_server)=="shell" then
@@ -1266,12 +1287,12 @@ A.programs.rainbow.run=function(params)//TODO test
             if typeof(s)=="shell" then
                 A.sessions.current=s
                 A.local_shit(A.sessions.current)
-                A.cycle
+                A.Bash
             end if
         else if mode=="mail" then
             if ip!=null then user=ip
             m=mail_login(user,word)
-            if typeof(m)=="MetaMail" then;print core.text("color","#FFFFFF")+user+" : "+word;A.cycle;end if
+            if typeof(m)=="MetaMail" then;print core.text("color","#FFFFFF")+user+" : "+word;A.Bash;end if
         else if mode=="wifi" then
             wifi_list=get_shell.host_computer.wifi_networks(get_shell.host_computer.network_devices.split(" ")[0].trim)[0]
             network=wifi_list.split(" ")
@@ -1282,7 +1303,7 @@ A.programs.rainbow.run=function(params)//TODO test
             if typeof(w) == "string" then
                 print("There was an error while connecting to new Wifi: " + w)
             else
-                print core.text("color","#FFFFFF")+"Connected to new Wifi successfully.";A.cycle
+                print core.text("color","#FFFFFF")+"Connected to new Wifi successfully.";A.Bash
             end if
         else if mode=="hash" then
             if hash==null then hash=user_input(core.text("color","#FFFFFF")+"Hash> ")
@@ -1334,7 +1355,8 @@ A.programs.rainbow.run=function(params)//TODO test
         end if
     end if
     print core.text("color","#ff0000")+"rainbow:Webster's Book Did Not Contain The Password!"
-    A.cycle
+    print "Mode:"+mode+" ip:"+ip+" user:"+user
+    A.Bash
 end function
 A.programs.servers={"name":"servers","desc":"Shows the Server Database","usg":"mode(v,a) object public_ip local_ip","req":"file"}
 A.programs.servers.run=function(params)//TODO test
@@ -1383,12 +1405,16 @@ A.programs.servers.run=function(params)//TODO test
     end if
     if mode=="v" then
         if A.stream==1 then A.stream_check("You Are About to Reveal The Winning Lottery Numbers")
+        if db.get_content=="" then A.Bash
         local_tar=public_tar
         public_tar=o
         data=core.text("color","#FFFFFF")+"<u>Public Local User Password"//TODO add column for if server as ssh/ftp as we can use this info to get into the system
-        for line in db
+        for line in db.get_content.split(char(10))
             if line=="" then continue
-            public=line.split(":")[0];local=line.split(":")[1];user=line.split(":")[2];pass=line.split(":")[3]
+            public=line.split(":")[0]
+            local=line.split(":")[1]
+            user=line.split(":")[2]
+            pass=line.split(":")[3]
             if public==public_tar then
                 if local==local_tar then
                     data=data+char(10)+core.text("color","#AA0000")+public+" "+local+" "+user+" "+pass
@@ -1404,33 +1430,78 @@ A.programs.servers.run=function(params)//TODO test
         if typeof(o)=="shell" then
                 c=o.host_computer
                 users=["root"]
-                for user in c.File("/home").get_folders;users.push(user.name);end for
+                for user in c.File("/home").get_folders
+                    if user=="guest" then continue
+                    users.push(user.name)
+                end for
                 for user in users
+                    if user=="guest" then continue
                     pwd=null
-                    pwd=A.programs.get_user_pass.run([o,user,"api"])
-                    if pwd!=null then
-                        if db.get_content=="" then
-                            db.set_content(c.public_ip+":"+c.local_ip+":"+user+":"+pwd)
-                        else
-                            db.set_content(db.get_content+char(10)+c.public_ip+":"+c.local_ip+":"+user+":"+pwd)
+                    pwd_file=o.host_computer.File("/etc/passwd").get_content.split(char(10))
+                    for item in pwd_file
+                        if item=="" then continue
+                        usr=item.split(":")[0]
+                        pwd=item.split(":")[1]
+                        if usr==user then 
+                            pwd=A.programs.rainbow.run(["rainbow","hash",0,0,pwd])
+                            if pwd!=null then
+                                if db.get_content=="" then
+                                    setResult=db.set_content(c.public_ip+":"+c.local_ip+":"+user+":"+pwd)
+                                    if typeof(setResult) == "string" then
+                                        print("There was an error while setting file content: " + setResult)
+                                        core.test
+                                    else if setResult == 0 then
+                                        print("Unable to set content of file!")
+                                        core.test
+                                    else
+                                        print("File content got changed successfully.")
+                                        core.test
+                                    end if
+                                else
+                                    db.set_content(db.get_content+char(10)+c.public_ip+":"+c.local_ip+":"+user+":"+pwd)
+                                end if
+                            end if
                         end if
-                    end if
+                    end for
                 end for
         else if typeof(o)=="computer" then
             c=o
             users=["root"]
             for user in c.File("/home").get_folders;users.push(user.name);end for
-            for user in users
-                pwd=null
-                pwd=A.programs.get_user_pass.run([o,user,"api"])
-                if pwd!=null and pwd!=A.password then
-                    if db.get_content=="" then
-                        db.set_content(c.public_ip+":"+c.local_ip+":"+user+":"+pwd)
-                    else
-                        db.set_content(db.get_content+char(10)+c.public_ip+":"+c.local_ip+":"+user+":"+pwd)
-                    end if
-                end if
-            end for
+                for user in c.File("/home").get_folders
+                    if user=="guest" then continue
+                    users.push(user.name)
+                end for
+                for user in users
+                    if user=="guest" then continue
+                    pwd=null
+                    pwd_file=c.File("/etc/passwd").get_content.split(char(10))
+                    for item in pwd_file
+                        if item=="" then continue
+                        usr=item.split(":")[0]
+                        pwd=item.split(":")[1]
+                        if usr==user then 
+                            pwd=A.programs.rainbow.run(["rainbow","hash",0,0,pwd])
+                            if pwd!=null then
+                                if db.get_content=="" then
+                                    setResult=db.set_content(c.public_ip+":"+c.local_ip+":"+user+":"+pwd)
+                                    if typeof(setResult) == "string" then
+                                        print("There was an error while setting file content: " + setResult)
+                                        core.test
+                                    else if setResult == 0 then
+                                        print("Unable to set content of file!")
+                                        core.test
+                                    else
+                                        print("File content got changed successfully.")
+                                        core.test
+                                    end if
+                                else
+                                    db.set_content(db.get_content+char(10)+c.public_ip+":"+c.local_ip+":"+user+":"+pwd)
+                                end if
+                            end if
+                        end if
+                    end for
+                end for
         else if typeof(o)=="file" then
         end if
     else if mode=="w" then
@@ -1610,7 +1681,6 @@ A.programs.nmail.run=function(params)//test adding
         return
     else if mode=="view" then
         view(db)
-        A.cycle
     end if
 end function
 A.programs.get_user_pass={"name":"get_user_pass","desc":"Decrypts /etc/passwd","usg":"object user mode","req":"file"}
@@ -1622,7 +1692,7 @@ A.programs.portal={"name":"portal","desc":"Open a temp portal to current system"
 A.programs.portal.run=function(params)//TODO test
     gateway=A.reshell_server
     core.req_shell(A.sessions.current)
-    if A.protected.indexOf(A.sessions.current.host_computer.public_ip)!=null then;print core.text("color","#FFFFFF")+"portal:Unable To Open Portal On Protected Server!";A.cycle;end if
+    if A.protected.indexOf(A.sessions.current.host_computer.public_ip)!=null then;print core.text("color","#FFFFFF")+"portal:Unable To Open Portal On Protected Server!";A.Bash;end if
     A.local_shit(A.sessions.current)
     s=A.hardware_server.scp("/root/lib/metaxploit.so",A.dropzone,A.sessions.current)
     if typeof(s) == "string" then
@@ -1643,7 +1713,7 @@ A.programs.portal.run=function(params)//TODO test
     BuildResult=s.build(A.dropzone.path+"/"+A.payload_name+".src",A.dropzone.path)
     if BuildResult !="" then
         print core.text("color","#FFFFFF")+ "There Was An Error While Compiling: "+BuildResult
-        A.cycle
+        A.Bash
     else
         print "File was created"
     end if
@@ -1655,14 +1725,14 @@ A.programs.portal.run=function(params)//TODO test
         s.launch(A.dropzone.path+"/"+A.payload_name)
     else
         print core.text("color","#FFFFFF")+"Only One Portal Per Device!"
-        A.cycle
+        A.Bash
     end if
     A.shared_payload("clean")
 end function
 A.programs.gateway={"name":"portal_server","desc":"Sets up the Portal Server","usg":"XXX","req":"file"}
 A.programs.gateway.run=function(params)//TODO FIX Broke
     gateway=A.reshell_server
-    if typeof(gateway)!="shell" then;print core.text("color","#FFFFFF")+"portal:Unable to connect to gateway";A.cycle;end if
+    if typeof(gateway)!="shell" then;print core.text("color","#FFFFFF")+"portal:Unable to connect to gateway";A.Bash;end if
     A.programs.logs.run(gateway)
     if active_user=="root" then A.programs.logs.run(get_shell)
     s=A.hardware_server.scp("/root/lib/metaxploit.so","/lib",gateway)
@@ -1688,9 +1758,9 @@ A.programs.gateway.run=function(params)//TODO FIX Broke
         A.local_shit(gateway)
         rshelld = A.sessions.local_object["local_rshell"]
     end if
-    if not rshelld or rshelld==null or rshelld=="null" then;print core.text("color","#FFFFFF")+"portal:Gateway is unable to core.find rshelld";A.cycle;end if
+    if not rshelld or rshelld==null or rshelld=="null" then;print core.text("color","#FFFFFF")+"portal:Gateway is unable to core.find rshelld";A.Bash;end if
     output = rshelld.install_service
-    if output != true then;print core.text("color","#FFFFFF")+"portal:Gateway is unable to install rshelld";A.cycle;end if
+    if output != true then;print core.text("color","#FFFFFF")+"portal:Gateway is unable to install rshelld";A.Bash;end if
     A.local_shit(gateway)
     A.shared_payload("create",gateway)
     bat=A.bat
@@ -1785,7 +1855,7 @@ A.programs.gateway.run=function(params)//TODO FIX Broke
     BR = gateway.build(A.dropzone.path+"/"+A.payload_name+".src",A.dropzone.path)
     if BR != "" then
         print(core.text("color","#FFFFFF")+"There was an error while compiling: " + BR)
-        A.cycle
+        A.Bash
     else
         print(core.text("color","#FFFFFF")+"File has been compiled.")
     end if
@@ -1795,13 +1865,13 @@ A.programs.gateway.run=function(params)//TODO FIX Broke
     if get_custom_object["rshell_object"]!=null then 
         A.sessions.current=get_custom_object["rshell_object"]
         A.local_shit(A.sessions.current)
-        A.cycle
+        A.Bash
     end if
 end function
 A.programs.wipe={"name":"wipe","desc":"Corrupts a system","usg":"XXX","req":"computer"}
 A.programs.wipe.run=function(params)//TODO test
     computer=core.req_computer(A.sessions.current)
-    if computer.public_ip==A.remote_server.host_computer.public_ip or computer.public_ip==A.hardware_server.host_computer.public_ip or computer.public_ip==get_shell.host_computer.public_ip then ;print core.text("color","#FFFFFF")+"You Are Trying To Use Commands On  A Protected System!";A.cycle;end if
+    if computer.public_ip==A.remote_server.host_computer.public_ip or computer.public_ip==A.hardware_server.host_computer.public_ip or computer.public_ip==get_shell.host_computer.public_ip then ;print core.text("color","#FFFFFF")+"You Are Trying To Use Commands On  A Protected System!";A.Bash;end if
     if computer.File("/boot") and computer.File("/boot").has_permission("w") then
     confirm = user_input(core.text("color","#AA0000")+"<b>=== 'F's In The Chat! ===\n{"+core.text("color","#FFFFFF")+computer.public_ip+core.text("cap","color")+":"+core.text("color","#FBFF00")+computer.local_ip+core.text("cap","color")+"}\n"+core.text("color","#FF8701")+"<b>** YOU CANNOT UNDO THIS ** \n--> ")
     art="                                                    
@@ -1811,7 +1881,7 @@ A.programs.wipe.run=function(params)//TODO test
   (__((__((___()                                       //|     |
  (__((__((___()()_____________________________________// |ACME |
 (__((__((___()()()------------------------------------'  |_____|"
-if confirm != "F" then ;clear_screen;print art+char(10);user_input(core.text("color","#FF8701")+"Stanislav Petrov Has Saved The World Once More!",0,1);A.cycle;end if
+if confirm != "F" then ;clear_screen;print art+char(10);user_input(core.text("color","#FF8701")+"Stanislav Petrov Has Saved The World Once More!",0,1);A.Bash;end if
         renameResult=computer.File("/boot").rename(".boot")
         if typeof(renameResult) == "string" and renameResult!="" then
             print("There was an error while renaming file: " + renameResult)
@@ -1831,7 +1901,7 @@ A.programs.webhunt.run=function(params)
         mode="any"
     else
         print core.text("color","#FFFFFF")+"webhunt:Invalid Params> "+params
-        A.cycle
+        A.Bash
     end if
     counter={"ips_checked":0,"matches_found":0}
     services=["http","ftp","ssh","smtp","repository","employees","students","criminals","router","rshell","bank_account"]
@@ -1864,7 +1934,8 @@ A.programs.webhunt.run=function(params)
         amount="1"
         matches=search(service,amount,version)
         core.stopwatch("stop","to scan " + counter.ips_checked + " networks and find 1 hackshop")
-        print core.text("color","#FFFFFF")+matches[0]
+        if typeof(A.master_shell)=="shell" then A.master_shell.launch("/usr/bin/Browser.exe",matches[0])
+        print matches[0]
         return matches[0]
     else
         amount=user_input(core.text("color","#FFFFFF")+"How Many Do You Want To Find? ")
@@ -1874,9 +1945,9 @@ A.programs.webhunt.run=function(params)
         print()
         core.stopwatch("stop","to scan " + counter.ips_checked + " networks and core.find " + matches.len+" matches")
         if user_input("Nmap all of them? y/n")=="y" then
-            for match in matches;A.programs.nmap.run(["nmap",match]);print char(10);end for;A.cycle
+            for match in matches;A.programs.nmap.run(["nmap",match]);print char(10);end for;A.Bash
         else
-            for match in matches;print core.text("color","#FFFFFF")+match;end for;A.cycle
+            for match in matches;print core.text("color","#FFFFFF")+match;end for;A.Bash
         end if
     end if
 end function
@@ -1919,7 +1990,32 @@ A.programs.htop.run=function(params)
         end while
         clear_screen
         params=[]
-        A.cycle
+        A.Bash
     end function
     monitor
+end function
+A.programs.elaunch={"name":"elaunch","desc":"Launch EXE's","usg":"XXX","req":"shell"}
+A.programs.elaunch.run=function(params)
+    shell=core.req_shell(A.sessions.current)
+    if params.len>1 then
+        if shell.host_computer.File("/usr/bin/"+params[1]+".exe") then
+            if params[1]=="browser" and params.len==3 then
+                shell.launch("/usr/bin/"+opt,params[2])
+            else
+                shell.launch("/usr/bin/"+params[1]+".exe")
+            end if
+            A.Bash
+        end if
+    end if
+    local_programs=[]
+    for program in A.hardware_server.host_computer.File("/usr/bin").get_files
+        local_programs.push(program.name)
+    end for
+    opt=core.menu(local_programs)
+    if not shell.host_computer.File("/usr/bin/"+opt) then A.hardware_server.scp("/usr/bin/"+opt, "/usr/bin", shell)
+    shell.launch("/usr/bin/"+opt)
+    A.Bash
+end function
+A.programs.traffic={"name":"traffic","desc":"Interface with the Traffic Cams","usg":"XXX","req":"shell"}
+A.programs.traffic.run=function(params)
 end function
