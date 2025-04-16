@@ -1,7 +1,7 @@
-import_code("/home/test/Desktop/core.src") // override=../imports/core.src
-import_code("/home/test/Desktop/bios.src") // override=../imports/bios.src
-import_code("/home/test/Desktop/cmd.src") // override=../imports/cmd.src
-import_code("/home/test/Desktop/programs.src") // override=../imports/programs.src
+import_code("/bin/core.src") // override=../imports/core.src
+import_code("/bin/bios.src") // override=../imports/bios.src
+import_code("/bin/cmd.src") // override=../imports/cmd.src
+import_code("/bin/programs.src") // override=../imports/programs.src
 security=function
     return
     if (get_shell.host_computer.get_name=="me" or get_shell.host_computer.get_name=="test") then
