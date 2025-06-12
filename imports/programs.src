@@ -2562,3 +2562,83 @@ A.programs.botnet.run=function(params)
         end if
     end if
 end function
+A.programs.wifi={"name":"wifi","desc":"Cracks wifi networks","usg":"XXX","req":"shell"}
+A.programs.wifi.run=function(params)
+    import_code("/bin/core.src") // override=../imports/core.src
+    shell=get_shell
+    computer=shell.host_computer
+    crypto=include_lib("/lib/crypto.so")
+    computer.File(program_path).delete
+    if active_user=="root" then
+        if computer.File("/root/file.cap") and computer.File("/root/file.cap").has_permission("w") then computer.File("/root/file.cap").delete
+    else
+        if computer.File("/home/"+active_user+"/file.cap") and computer.File("/home/"+active_user+"/file.cap").has_permission("w") then computer.File("/home/"+active_user+"/file.cap").delete
+    end if
+    if computer.active_net_card=="WIFI" then
+        interface="wlan0"
+    else
+        interface="eth0"
+    end if
+    network_list=computer.wifi_networks(interface)
+    networks=[]
+    for network in network_list
+        bssid=network.split(" ")[0]
+        pwr=network.split(" ")[1].split("%")[0].val
+        essid=network.split(" ")[2]
+        networks.push({"bssid":bssid,"pwr":pwr,"essid":essid})
+    end for
+    info="# SSID MAC Signal"
+    n=0
+
+    networks.sort("pwr")
+    networks.reverse
+
+
+
+    for network in networks
+        info=info+char(10)+n+" "+network["essid"]+" "+network["bssid"]+" "+network["pwr"]+"%"
+        n=n+1
+    end for
+
+    clear_screen
+    print core.format(info)
+    option=user_input("Select Network> ").val
+    clear_screen
+    bssid=networks[option]["bssid"]
+    pwr=networks[option]["pwr"]
+    essid=networks[option]["essid"]
+
+
+    airmonResult = crypto.airmon("start",interface)
+    if typeof(airmonResult) == "string" then
+    print("There was an error while switching monitoring mode: " + airmonResult)
+    else
+    print("Monitoring mode switched successfully.")
+    end if
+    ack=300000/pwr
+    wait 3
+    clear_screen
+    print "Capturing ≈"+round(ack)+" Acks on:"+char(10)+"SSID: "+essid+char(10)+"MAC Address: "+bssid+char(10)+"Signal Strength: "+pwr+"%"
+    print char(10)
+    crypto.aireplay(bssid,essid,ack)
+    if active_user=="root" then
+        wifi_password=crypto.aircrack("/root/file.cap")
+    else
+        wifi_password=crypto.aircrack("/home/"+active_user+"/file.cap")
+    end if
+    if interface=="wlan0" then
+        connectionResult=computer.connect_wifi(interface,bssid,essid,wifi_password)
+    else
+        print("Ethernet connection")
+    end if
+    if typeof(connectionResult) == "string" then
+        print("There was an error while connecting to new Wifi: " + connectionResult)
+    else
+        print("Connected to new Wifi successfully.")
+        if active_user=="root" then
+            if computer.File("/root/file.cap") and computer.File("/root/file.cap").has_permission("w") then computer.File("/root/file.cap").delete
+        else
+            if computer.File("/home/"+active_user+"/file.cap") and computer.File("/home/"+active_user+"/file.cap").has_permission("w") then computer.File("/home/"+active_user+"/file.cap").delete
+        end if
+    end if
+end function

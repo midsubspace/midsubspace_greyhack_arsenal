@@ -1,4 +1,4 @@
-import_code("/imports/core.src")
+import_code("/bin/core.src") // override=../imports/core.src
 shell=get_shell
 computer=shell.host_computer
 crypto=include_lib("/lib/crypto.so")
