@@ -231,6 +231,7 @@ setup=function
         get_custom_object["crypto"]="null"
         get_custom_object["meta"]="null"
         if typeof(A.hardware_server)=="shell" then
+            A.hardware_server.host_computer.File("/etc/apt/sources.txt").delete
             A.hardware_server.host_computer.touch("/root","getlibs.src")
             A.hardware_server.host_computer.File("/root/getlibs.src").set_content("s=get_shell
         clear_logs=function(shell)
@@ -365,7 +366,7 @@ while true
         else if typeof(A.sessions.current)=="computer" then
             prompt="["+A.sessions.current.public_ip+"@"+A.sessions.current.local_ip+"]("+typeof(A.sessions.current)+")"+cmds.usr+"@:"+cmds.dir+"> "
         else
-            prompt="[File Object Unable to Retrive Remote IP]("+typeof(A.sessions.current)+")"+cmds.usr+"@:"+cmds.dir+"> "
+            prompt="[?]("+typeof(A.sessions.current)+")"+cmds.usr+"@:"+cmds.dir+"> "
         end if
     else
         prompt=core.text("color","#FFFFFF")+"DEBUG> "
@@ -380,7 +381,10 @@ while true
     if params[0]=="debug" then;if A.debug==0 then; print core.text("color","#ffffff")+"Turning on Debug Mode";A.debugf.set_content(1);A.debug=1;A.Bash;else;print core.text("color","#FFFFFF")+"Debug Mode Turned Off";A.debugf.set_content(0);A.debug=0;A.Bash;end if;end if
     if params[0]=="browser" then A.programs.elaunch.run(["elaunch","Browser"])
     if params[0]=="files" then A.programs.elaunch.run(["elaunch","FileExplorer"])
+    if params[0]=="log" then A.programs.elaunch.run(["elaunch","LogViewer"])
     if params[0]=="mail" then A.programs.elaunch.run(["elaunch","Mail"])
+    if params[0]=="grades" then A.programs.elaunch.run(["elaunch","StudentsViewer"])
+    if params[0]=="police" then A.programs.elaunch.run(["elaunch","PoliceRecord"])
     if params[0]=="settings" then A.programs.elaunch.run(["elaunch","Settings"])
     if params[0]=="dock" then
         o=user_input("System:",1).lower
@@ -432,20 +436,32 @@ while true
     else if core.hasIndex(params[0])==1 then
         core[params[0]].run(params)
     else if params[0]=="help" or params[0]=="-h" or params[0]==""then
+        data="Command Description Usage"
         for i in cmds.programs
+            if typeof(A.sessions.current=="file") then
+                if i.value.req=="shell" or i.value.req=="computer" then continue
+            else if typeof(A.sessions.current=="computer") then
+                if i.value.req=="shell" then continue
+            end if
             if i.value.usg=="XXX" then
-                print core.text("color","#FFFFFF")+i.value.name+":"+i.value.desc
+                data=data+char(10)+core.text("color","#FFFFFF")+i.value.name+" "+i.value.desc+" "+"NONE"
             else
-                print core.text("color","#FFFFFF")+i.value.name+":"+i.value.desc+":"+core.text("color","#FBFF00")+i.value.usg
+                data=data+char(10)+core.text("color","#FFFFFF")+i.value.name+" "+i.value.desc+" "+i.value.usg
             end if
         end for
         for i in A.programs
-            if i.value.usg=="XXX" then 
-                print core.text("color","#FFFFFF")+i.value.name+":"+i.value.desc
+            if typeof(A.sessions.current=="file") then
+                if i.value.req=="shell" or i.value.req=="computer" then continue
+            else if typeof(A.sessions.current=="computer") then
+                if i.value.req=="shell" then continue
+            end if
+            if i.value.usg=="XXX" then
+                data=data+char(10)+core.text("color","#FFFFFF")+i.value.name+" "+i.value.desc+" "+"NONE"
             else
-                print core.text("color","#FFFFFF")+i.value.name+":"+i.value.desc+":"+core.text("color","#FBFF00")+i.value.usg
+                data=data+char(10)+core.text("color","#FFFFFF")+i.value.name+" "+i.value.desc+" "+i.value.usg
             end if
         end for
+        print core.format(data)
     else
         clear_screen
     end if
