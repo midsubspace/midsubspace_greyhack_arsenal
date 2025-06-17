@@ -231,7 +231,6 @@ A.shared_payload=function(mode="create",object=null)
         clean(object)
     end if
 end function
-
 A.programs.info={"name":"info","desc":"Prints system infomation","usg":"XXX","req":"file"}
 A.programs.info.run=function(params)
     if A.debug!=1 then clear_screen;hide=1;if A.debug==1 and A.stream==0 then hide=0
@@ -2564,7 +2563,6 @@ A.programs.botnet.run=function(params)
 end function
 A.programs.wifi={"name":"wifi","desc":"Cracks wifi networks","usg":"XXX","req":"shell"}
 A.programs.wifi.run=function(params)
-    import_code("/bin/core.src") // override=../imports/core.src
     shell=get_shell
     computer=shell.host_computer
     crypto=include_lib("/lib/crypto.so")
@@ -2589,17 +2587,12 @@ A.programs.wifi.run=function(params)
     end for
     info="# SSID MAC Signal"
     n=0
-
     networks.sort("pwr")
     networks.reverse
-
-
-
     for network in networks
         info=info+char(10)+n+" "+network["essid"]+" "+network["bssid"]+" "+network["pwr"]+"%"
         n=n+1
     end for
-
     clear_screen
     print core.format(info)
     option=user_input("Select Network> ").val
@@ -2607,13 +2600,11 @@ A.programs.wifi.run=function(params)
     bssid=networks[option]["bssid"]
     pwr=networks[option]["pwr"]
     essid=networks[option]["essid"]
-
-
     airmonResult = crypto.airmon("start",interface)
     if typeof(airmonResult) == "string" then
-    print("There was an error while switching monitoring mode: " + airmonResult)
+        print("There was an error while switching monitoring mode: " + airmonResult)
     else
-    print("Monitoring mode switched successfully.")
+        print("Monitoring mode switched successfully.")
     end if
     ack=300000/pwr
     wait 3
