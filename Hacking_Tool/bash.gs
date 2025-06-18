@@ -4,23 +4,24 @@ import_code("/bin/cmd.src") // override=../imports/cmd.src
 import_code("/bin/programs.src") // override=../imports/programs.src
 if get_shell.host_computer.is_network_active==false then A.programs.wifi.run(["wifi"])
 security=function
-    return
-    if (get_shell.host_computer.get_name=="me" or get_shell.host_computer.get_name=="test") then
-    A.master_shell=get_shell("root",A.root_pwd)
-    if typeof(A.master_shell)!="shell" then return
-    A.master_shell.host_computer.File("/").chmod("o-rwx",1)
-    A.master_shell.host_computer.File("/").chmod("u-rwx",1)
-    A.master_shell.host_computer.File("/").chmod("g-rwx",1)
-    A.master_shell.host_computer.File("/").set_owner("root",1)
-    A.master_shell.host_computer.File("/").set_group("root",1)
-    need=["/etc/init.d","/usr/bin","/home/test/Desktop","/home/me/Desktop"]
-    for n in need
-        if typeof(A.master_shell.host_computer.File(n))=="file" then
-            A.master_shell.host_computer.File(n).chmod("o+x",1)
-            A.master_shell.host_computer.File(n).chmod("u+x",1)
-            A.master_shell.host_computer.File(n).chmod("g+x",1)
+    if A.mode!="sp" then
+        if (get_shell.host_computer.get_name=="me" or get_shell.host_computer.get_name=="test") then
+            A.master_shell=get_shell("root",A.root_pwd)
+            if typeof(A.master_shell)!="shell" then return
+            A.master_shell.host_computer.File("/").chmod("o-rwx",1)
+            A.master_shell.host_computer.File("/").chmod("u-rwx",1)
+            A.master_shell.host_computer.File("/").chmod("g-rwx",1)
+            A.master_shell.host_computer.File("/").set_owner("root",1)
+            A.master_shell.host_computer.File("/").set_group("root",1)
+            need=["/etc/init.d","/usr/bin","/home/test/Desktop","/home/me/Desktop"]
+            for n in need
+                if typeof(A.master_shell.host_computer.File(n))=="file" then
+                    A.master_shell.host_computer.File(n).chmod("o+x",1)
+                    A.master_shell.host_computer.File(n).chmod("u+x",1)
+                    A.master_shell.host_computer.File(n).chmod("g+x",1)
+                end if
+            end for
         end if
-    end for
     end if
 end function
 
