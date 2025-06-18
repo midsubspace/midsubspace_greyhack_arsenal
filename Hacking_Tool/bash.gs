@@ -437,15 +437,15 @@ while true
             user_input(core.text("color","#ffffff")+"man:Prints Description of command",0,1)
         else
             for i in cmds.programs
-                if params[1].lower==i.value.name then
+                if params[1].lower==i.value.name and i.value.type!="dev" then
                     clear_screen
-                    user_input(core.text("color","#ffffff")+i.value.name+":"+i.value.desc,0,1)
+                    user_input(core.text("color","#ffffff")+i.value.name+":"+i.value.desc+":"+i.value.req,0,1)
                 end if
             end for
             for i in A.programs
-                if params[1].lower==i.value.name then
+                if params[1].lower==i.value.name and i.value.type!="dev"then
                     clear_screen
-                    user_input(core.text("color","#ffffff")+i.value.name+":"+i.value.desc,0,1)
+                    user_input(core.text("color","#ffffff")+i.value.name+":"+i.value.desc+":"+i.value.req,0,1)
                 end if
             end for 
         end if
@@ -458,6 +458,7 @@ while true
         core[params[0]].run(params)
     else if params[0]=="help" or params[0]=="-h" or params[0]==""then
         for i in cmds.programs
+            if i.value.type=="dev" then continue
             if typeof(A.sessions.current=="file") then
                 if i.value.req=="shell" or i.value.req=="computer" then continue
             else if typeof(A.sessions.current=="computer") then
@@ -468,6 +469,7 @@ while true
             print i.value.name
         end for
         for i in A.programs
+            if i.value.type=="dev" then continue
             if typeof(A.sessions.current=="file") then
                 if i.value.req=="shell" or i.value.req=="computer" then continue
             else if typeof(A.sessions.current=="computer") then

@@ -32,7 +32,7 @@ A.local_shit=function(shell=null)
         end if
         A.shared_payload("clean")
 end function
-A.programs.logs={"name":"logs","desc":"Clears the logs of a system if ran as "+core.text("color","#AA0000")+"Root","usg":"XXX","req":"file"}
+A.programs.logs={"name":"logs","desc":"Clears the logs of a system if ran as "+core.text("color","#AA0000")+"Root","type":"live","usg":"XXX","req":"file"}
 A.programs.logs.run=function(object=null)
     objects=["file","shell","computer","number"]
     if object==null or typeof(object)=="list" then object=A.sessions.current
@@ -233,7 +233,7 @@ A.shared_payload=function(mode="create",object=null)
         clean(object)
     end if
 end function
-A.programs.info={"name":"info","desc":"Prints system infomation","usg":"XXX","req":"file"}
+A.programs.info={"name":"info","desc":"Prints system infomation","type":"live","usg":"XXX","req":"file"}
 A.programs.info.run=function(params)
     if A.debug!=1 then clear_screen;hide=1;if A.debug==1 and A.stream==0 then hide=0
     print core.text("color","#FFFFFF")+"Imported Player Config File";print core.text("color","#FFFFFF")+"Imported "+core.len+" Core Function(s)";print core.text("color","#FFFFFF")+"Imported "+A.programs.len+" Custom Command(s)";print core.text("color","#FFFFFF")+"Imported "+cmds.programs.len+" Terminal Command(s)";print core.text("color","#FFFFFF")+"GUID:"+core.text("color","#FBFF00")+A.RID;print core.text("color","#FFFFFF")+"System Time:"+core.get_date.month+"-"+core.get_date.day+"-"+core.get_date.year+" "+core.get_date.time;print core.text("color","#FFFFFF")+"This Version is valid until:"+core.text("color","#FBFF00")+A.exp_date.month+"-"+A.exp_date.day+"-"+A.exp_date.year;print core.text("color","#FFFFFF")+"Thank You For Using "+core.text("color","#FBFF00")+program_path.split("/").pop;print core.text("color","#FFFFFF")+"Created By: "+core.text("color","#FBFF00")+"me";print core.text("color","#FFFFFF")+"You Are Running Version: "+core.text("color","#FBFF00")+A.version
@@ -288,10 +288,10 @@ A.programs.info.run=function(params)
     if typeof(A.crypto)=="cryptoLib" then;print core.text("color","#FFFFFF")+"Crypto Status: "+core.text("color","#00ED03")+A.crypto_type;else;print core.text("color","#FFFFFF")+"Crypto Status: "+core.text("color","#AA0000")+"Missing";end if
     if A.hackshop!="" then;print core.text("color","#FFFFFF")+"HACKSHOP: "+core.text("color","#00ED03")+"Connected";if hide==0 then print core.text("color","#FFFFFF")+"HACKSHOP IP: "+A.hackshop;else;print core.text("color","#FFFFFF")+"HACKSHOP: "+core.text("color","#AA0000")+"Disconnected";end if
 end function
-A.programs.scanlan={"name":"scanlan","desc":"Scan Local Network For Devices(Planned)","usg":"XXX","req":"shell"}
+A.programs.scanlan={"name":"scanlan","desc":"Scan Local Network For Devices(Planned)","type":"dev","usg":"XXX","req":"shell"}
 A.programs.scanlan.run=function(params)
 end function
-A.programs.local={"name":"local","desc":"Hacks libs in /lib","usg":"XXX","req":"shell"}
+A.programs.local={"name":"local","desc":"Hacks libs in /lib","type":"live","usg":"XXX","req":"shell"}
 A.programs.local.run=function(params)//TODO test
     core.req_shell(A.sessions.current)
     A.results=[]
@@ -349,7 +349,7 @@ A.programs.local.run=function(params)//TODO test
     end for
     if A.results.len>0 then A.object_sorter
 end function
-A.programs.find={"name":"core.find","desc":"Find Files and Folders on a system","usg":"Search_Term","req":"file"}
+A.programs.find={"name":"core.find","desc":"Find Files and Folders on a system","type":"dev","usg":"Search_Term","req":"file"}
 A.programs.find.run=function(params)//TODO test
     if params.len==3 then
         term=params[1]
@@ -499,7 +499,7 @@ A.programs.find.run=function(params)//TODO test
         end if
     end if   
 end function
-A.programs.update={"name":"update","desc":"Update Libs","usg":"XXX","req":"file"}
+A.programs.update={"name":"update","desc":"Update Libs","type":"live","usg":"XXX","req":"file"}
 A.programs.update.run=function(params)
     if params.len==3 then
         mode=params[1]
@@ -561,7 +561,7 @@ A.programs.update.run=function(params)
         if A.debug==1 then  print("Updated Server Libs")
     end if
 end function
-A.programs.nmap={"name":"nmap","desc":"Scans the Ports On A Network","usg":"IP","req":"file"}
+A.programs.nmap={"name":"nmap","desc":"Scans the Ports On A Network","type":"live","usg":"IP","req":"file"}
 A.programs.nmap.run=function(params)//TODO test
     if params.len!=2 then
         if typeof(A.sessions.current)=="shell" then
@@ -687,7 +687,7 @@ A.programs.nmap.run=function(params)//TODO test
     print(char(10) + core.format(data))
     return(ip)
 end function
-A.programs.ip={"name":"ip","desc":"Generates a Random IP","usg":"mode[*] num_of_ports[*]","req":"file"}
+A.programs.ip={"name":"ip","desc":"Generates a Random IP","type":"live","usg":"mode[*] num_of_ports[*]","req":"file"}
 A.programs.ip.run=function(params)//TODO test
     mode="gen"
     if params.len==2 then
@@ -849,7 +849,7 @@ A.object_sorter=function(ip)//TODO test
     end if
     A.Bash
 end function
-A.programs.hack={"name":"hack","desc":"Remotly Hack a System","usg":"ip_address","req":"file"}
+A.programs.hack={"name":"hack","desc":"Remotly Hack a System","type":"live","usg":"ip_address","req":"file"}
 A.programs.hack.run=function(params)//TODO test
     if A.debug!=1 then clear_screen
     if params.len!=2 then 
@@ -916,7 +916,7 @@ A.programs.hack.run=function(params)//TODO test
         A.Bash
     end if
 end function
-A.programs.auto_hack={"name":"auto_hack","desc":"Hacks All Ports On a Target","usg":"ip_address","req":"file"}
+A.programs.auto_hack={"name":"auto_hack","desc":"Hacks All Ports On a Target","type":"live","usg":"ip_address","req":"file"}
 A.programs.auto_hack.run=function(params)//TODO test
     ip=params[1]
     if params.len>2 then
@@ -976,7 +976,7 @@ A.programs.auto_hack.run=function(params)//TODO test
         print core.text("color","#FFFFFF")+"Scan Completed!"
     end if
 end function
-A.programs.addons={"name":"addons","desc":"Launches The Addons Menu","usg":"mode[l,u] target","req":"shell"}
+A.programs.addons={"name":"addons","desc":"Launches The Addons Menu","type":"live","usg":"mode[l,u] target","req":"shell"}
 A.programs.addons.run=function(params)//TODO test
     if params.len==3 then
         mode=params[1]
@@ -1047,7 +1047,7 @@ A.programs.addons.run=function(params)//TODO test
     program=programs[action]
     A.server.launch(program.path)
 end function
-A.programs.root={"name":"root","desc":"Try To Gain Root Access","usg":"XXX","req":"shell"}
+A.programs.root={"name":"root","desc":"Try To Gain Root Access","type":"live","usg":"XXX","req":"shell"}
 A.programs.root.run=function(params)//TODO test
     if params.len==2 then
         shell=params[1]
@@ -1150,7 +1150,7 @@ A.programs.root.run=function(params)//TODO test
     print core.text("color","#FFFFFF")+"It took "+endtime["hour"]+" Hour(s):"+endtime["min"]+" Min(s):"+endtime["sec"]+" Sec(s) to fail getting root access"
     A.Bash
 end function
-A.programs.gui={"name":"gui","desc":"Install GUI Tools","usg":"XXX","req":"shell"}
+A.programs.gui={"name":"gui","desc":"Install GUI Tools","type":"live","usg":"XXX","req":"shell"}
 A.programs.gui.run=function(params)//TODO test
     core.req_shell(A.sessions.current)
     n=0
@@ -1182,8 +1182,8 @@ A.programs.gui.run=function(params)//TODO test
         end for
     end if
 end function
-A.programs.spider={"name":"spider","desc":"Crawl Though Local Network","usg":"XXX","req":"file"}
-A.programs.std={"name":"std","desc":"Infects /lib with bad libs MP ONLY","usg":"XXX","req":"shell"}
+A.programs.spider={"name":"spider","desc":"Crawl Though Local Network","type":"dev","usg":"XXX","req":"file"}
+A.programs.std={"name":"std","desc":"Infects /lib with bad libs","type":"live","usg":"XXX","req":"shell"}
 A.programs.std.run=function(params)
     core.req_shell(A.sessions.current)
     A.programs.portal.run(params)
@@ -1198,7 +1198,7 @@ A.programs.std.run=function(params)
         A.server.scp(file.path,"/lib",A.sessions.current)
     end for
 end function
-A.programs.rainbow={"name":"rainbow","desc":"Search <b><i>The Library</b></i>","usg":"hash,ssh,ftp,mail,wifi ip user","req":"file"}
+A.programs.rainbow={"name":"rainbow","desc":"Search <b><i>The Library</b></i>","type":"live","usg":"hash,ssh,ftp,mail,wifi ip user","req":"file"}
 A.programs.rainbow.run=function(params)//TODO test
     if params.len==6 then
         mode=params[1]
@@ -1359,7 +1359,7 @@ A.programs.rainbow.run=function(params)//TODO test
     print "Mode:"+mode+" ip:"+ip+" user:"+user
     A.Bash
 end function
-A.programs.servers={"name":"servers","desc":"Shows the Server Database","usg":"mode(v,a) object public_ip local_ip","req":"file"}
+A.programs.servers={"name":"servers","desc":"Shows the Server Database","type":"live","usg":"mode(v,a) object public_ip local_ip","req":"file"}
 A.programs.servers.run=function(params)//TODO test
     if params.len==5 then
         mode=params[1]
@@ -1514,7 +1514,7 @@ A.programs.servers.run=function(params)//TODO test
         end if
     end if
 end function
-A.programs.nmail={"name":"nmail","desc":"Shows the NPC Mail Database","usg":"mode[add,view] public_ip[opt] local_ip[opt]","req":"file"}//TODO ADD
+A.programs.nmail={"name":"nmail","desc":"Shows the NPC Mail Database","type":"live","usg":"mode[add,view] public_ip[opt] local_ip[opt]","req":"file"}//TODO ADD
 A.programs.nmail.run=function(params)//test adding
     if params.len==4 then
         mode=params[1]
@@ -1684,12 +1684,9 @@ A.programs.nmail.run=function(params)//test adding
         view(db)
     end if
 end function
-A.programs.get_user_pass={"name":"get_user_pass","desc":"Decrypts /etc/passwd","usg":"object user mode","req":"file"}
-A.programs.get_user_pass.run=function(params)//TODO test
-end function//TODO add to servers function and trash this shit
-A.programs.hackshop={"name":"hackshop","desc":"Generates Random Hackshop","usg":"XXX","req":"file"}
+A.programs.hackshop={"name":"hackshop","desc":"Generates Random Hackshop","type":"live","usg":"XXX","req":"file"}
 A.programs.hackshop.run=function(params);A.programs.webhunt.run(["webhunt","hackshop"]);end function
-A.programs.portal={"name":"portal","desc":"Open a temp portal to current system","usg":"XXX","req":"shell"}
+A.programs.portal={"name":"portal","desc":"Open a temp portal to current system","type":"live","usg":"XXX","req":"shell"}
 A.programs.portal.run=function(params)//TODO test
     gateway=A.reshell_server
     core.req_shell(A.sessions.current)
@@ -1730,7 +1727,7 @@ A.programs.portal.run=function(params)//TODO test
     end if
     A.shared_payload("clean")
 end function
-A.programs.gateway={"name":"portal_server","desc":"Sets up the Portal Server","usg":"XXX","req":"file"}
+A.programs.gateway={"name":"portal_server","desc":"Sets up the Portal Server","type":"live","usg":"XXX","req":"file"}
 A.programs.gateway.run=function(params)//TODO FIX Broke
     gateway=A.reshell_server
     if typeof(gateway)!="shell" then;print core.text("color","#FFFFFF")+"portal:Unable to connect to gateway";A.Bash;end if
@@ -1869,7 +1866,7 @@ A.programs.gateway.run=function(params)//TODO FIX Broke
         A.Bash
     end if
 end function
-A.programs.wipe={"name":"wipe","desc":"Corrupts a system","usg":"XXX","req":"computer"}
+A.programs.wipe={"name":"wipe","desc":"Corrupts a system","type":"live","usg":"XXX","req":"computer"}
 A.programs.wipe.run=function(params)//TODO test
     computer=core.req_computer(A.sessions.current)
     if computer.public_ip==A.remote_server.host_computer.public_ip or computer.public_ip==A.hardware_server.host_computer.public_ip or computer.public_ip==get_shell.host_computer.public_ip then ;print core.text("color","#FFFFFF")+"You Are Trying To Use Commands On  A Protected System!";A.Bash;end if
@@ -1892,9 +1889,9 @@ if confirm != "F" then ;clear_screen;print art+char(10);user_input(core.text("co
     end if
     return
 end function
-A.programs.object_menu={"name":"object_menu","desc":"Returns you to the object sorter","usg":"XXX","req":"shell"}
+A.programs.object_menu={"name":"object_menu","desc":"Returns you to the object sorter","type":"dev","usg":"XXX","req":"shell"}
 A.programs.object_menu.run=function(params);if A.object_ip!=null then A.object_sorter(A.object_ip);end function
-A.programs.webhunt={"name":"webhunt","desc":"Hunts Down Networks","usg":"mode(opt)[hackshop]","req":"file"}
+A.programs.webhunt={"name":"webhunt","desc":"Hunts Down Networks","type":"live","usg":"mode(opt)[hackshop]","req":"file"}
 A.programs.webhunt.run=function(params)
     if params.len==2 then
         mode=params[1]
@@ -1952,7 +1949,7 @@ A.programs.webhunt.run=function(params)
         end if
     end if
 end function
-A.programs.htop={"name":"htop","desc":"Task Manager","usg":"XXX","req":"computer"}
+A.programs.htop={"name":"htop","desc":"Task Manager","type":"live","usg":"XXX","req":"computer"}
 A.programs.htop.run=function(params)
     computer=core.req_computer(A.sessions.current)
     monitor=function
@@ -1995,7 +1992,7 @@ A.programs.htop.run=function(params)
     end function
     monitor
 end function
-A.programs.elaunch={"name":"elaunch","desc":"Launch EXE's","usg":"XXX","req":"shell"}
+A.programs.elaunch={"name":"elaunch","desc":"Launch EXE's","type":"live","usg":"XXX","req":"shell"}
 A.programs.elaunch.run=function(params)
     shell=core.req_shell(A.sessions.current)
     if params.len>1 then
@@ -2017,11 +2014,11 @@ A.programs.elaunch.run=function(params)
     shell.launch("/usr/bin/"+opt)
     A.Bash
 end function
-A.programs.traffic={"name":"traffic","desc":"Interface with the Traffic Cams","usg":"XXX","req":"shell"}
+A.programs.traffic={"name":"traffic","desc":"Interface with the Traffic Cams","type":"live","usg":"XXX","req":"shell"}
 A.programs.traffic.run=function(params)
 end function
-A.programs.reveal={"name":"reveal","desc":"Show all Folders and Files on the system","usg":"XXX","req":"file"}
-A.programs.reveal.run=function(params)
+A.programs.light={"name":"light","desc":"Show all Folders and Files on the system","type":"live","usg":"XXX","req":"file"}
+A.programs.light.run=function(params)
     file_obj=core.req_file(A.sessions.current)
     while file_obj.name!="/"
         file_obj=file_obj.parent
@@ -2140,7 +2137,7 @@ A.programs.reveal.run=function(params)
     details
     display
 end function
-A.programs.botnet={"name":"botnet","desc":"Launches the BotNet System","usg":"XXX","req":"file"}
+A.programs.botnet={"name":"botnet","desc":"Launches the BotNet System","type":"live","usg":"XXX","req":"file"}
 A.programs.botnet.run=function(params)
     params=[]
     color = {};color.u="<u>";color.white = "<color=#FFFFFF>";color.grey = "<color=#A5A5A5>";color.blue = "<color=#003AFF>";color.cyan = "<color=#00FFE7>";color.purple = "<color=#D700FF>";color.red = "<color=#AA0000>";color.yellow = "<color=#FBFF00>";color.orange = "<color=#FF8701>";color.green = "<color=#00ED03>";color.fill = "><> ><> ><> ><> ><> ><> ><> ><> ><> ><> ><> ><>";color.cap = "</color>";title = "<color=#00FFE7>[<b>SeaShell</b>]</color> ";init = "<color=#00ED03>[SeaShell] <b>init:</b></color> ";error = "<color=#AA0000>[SeaShell] <b>Error:</b></color> ";warning = "<color=#FF8701>[SeaShell] <b>Warning:</b></color> ";color.rainbow = color.red+"R"+color.cap+color.orange+"A"+color.cap+color.cap+color.yellow+"I"+color.cap+color.cap+color.green+"N"+color.cap+color.cap+color.cyan+"B"+color.cap+color.cap+color.blue+"O"+color.cap+color.cap+color.purple+"W"+color.cap;
@@ -2563,7 +2560,7 @@ A.programs.botnet.run=function(params)
         end if
     end if
 end function
-A.programs.wifi={"name":"wifi","desc":"Cracks wifi networks","usg":"XXX","req":"shell"}
+A.programs.wifi={"name":"wifi","desc":"Cracks wifi networks","type":"live","usg":"XXX","req":"shell"}
 A.programs.wifi.run=function(params)
     shell=get_shell
     computer=shell.host_computer
@@ -2636,7 +2633,7 @@ A.programs.wifi.run=function(params)
     end if
 end function
 
-A.programs.encrypt={"name":"encrypt","desc":"Encrypts a file using a password","usg":"XXX","req":"shell"}
+A.programs.encrypt={"name":"encrypt","desc":"Encrypts a file using a password","type":"live","usg":"XXX","req":"shell"}
 A.programs.encrypt.run=function(params)
     A.local_shit(A.sessions.current)
     remote_crypto=A.sessions.local_object.local_crypto
@@ -2667,7 +2664,7 @@ A.programs.encrypt.run=function(params)
         print "Encrypted File "+file.path+ " With Password:"+pass
     end if
 end function
-A.programs.decrypt={"name":"decrypt","desc":"Decrypt a file using a password","usg":"XXX","req":"shell"}
+A.programs.decrypt={"name":"decrypt","desc":"Decrypt a file using a password","type":"live","usg":"XXX","req":"shell"}
 A.programs.decrypt.run=function(params)
     A.local_shit(A.sessions.current)
     remote_crypto=A.sessions.local_object.local_crypto
