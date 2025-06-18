@@ -80,6 +80,9 @@ core.find=function(object=null)
     return(temp)
 end function
 core.check_match=function(matches)
+    for m in matches
+        if m.is_folder and m.name=="/" then return matches[0]
+    end for
     if matches.len>1 then
         n=0
         matches.push("exit")
