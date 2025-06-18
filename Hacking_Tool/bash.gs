@@ -438,32 +438,26 @@ while true
     else if core.hasIndex(params[0])==1 then
         core[params[0]].run(params)
     else if params[0]=="help" or params[0]=="-h" or params[0]==""then
-        data="Command Description Usage"
         for i in cmds.programs
             if typeof(A.sessions.current=="file") then
                 if i.value.req=="shell" or i.value.req=="computer" then continue
             else if typeof(A.sessions.current=="computer") then
                 if i.value.req=="shell" then continue
+            else if typeof(A.sessions.current=="shell") then
+                wait 0.1
             end if
-            if i.value.usg=="XXX" then
-                data=data+char(10)+core.text("color","#FFFFFF")+i.value.name+" "+i.value.desc+" "+"NONE"
-            else
-                data=data+char(10)+core.text("color","#FFFFFF")+i.value.name+" "+i.value.desc+" "+i.value.usg
-            end if
+            print i.value.name
         end for
         for i in A.programs
             if typeof(A.sessions.current=="file") then
                 if i.value.req=="shell" or i.value.req=="computer" then continue
             else if typeof(A.sessions.current=="computer") then
                 if i.value.req=="shell" then continue
+            else if typeof(A.sessions.current=="shell") then
+                wait 0.1
             end if
-            if i.value.usg=="XXX" then
-                data=data+char(10)+core.text("color","#FFFFFF")+i.value.name+" "+i.value.desc+" "+"NONE"
-            else
-                data=data+char(10)+core.text("color","#FFFFFF")+i.value.name+" "+i.value.desc+" "+i.value.usg
-            end if
+            print i.value.name
         end for
-        print core.format(data)
     else
         clear_screen
     end if
