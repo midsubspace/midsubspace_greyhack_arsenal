@@ -431,6 +431,25 @@ while true
     end if
     if params[0]=="info" then;A.programs.info.run(params);A.Bash;end if
     if params[0]=="crash" then print [].lower
+    if params[0]=="man" then
+        if params.len==1 then
+            clear_screen
+            user_input(core.text("color","#ffffff")+"man:Prints Description of command",0,1)
+        else
+            for i in cmds.programs
+                if params[1].lower==i.value.name then
+                    clear_screen
+                    user_input(core.text("color","#ffffff")+i.value.name+":"+i.value.desc,0,1)
+                end if
+            end for
+            for i in A.programs
+                if params[1].lower==i.value.name then
+                    clear_screen
+                    user_input(core.text("color","#ffffff")+i.value.name+":"+i.value.desc,0,1)
+                end if
+            end for 
+        end if
+    end if
     if cmds.programs.hasIndex(params[0])==1 then
         cmds.programs[params[0]].run(params,A.sessions.current)
     else if A.programs.hasIndex(params[0])==1 then
