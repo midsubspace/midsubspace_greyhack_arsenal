@@ -11,7 +11,8 @@ A.local_shit=function(shell=null)
     if A.debug==1 then print core.text("color","#FFFFFF")+bat.path
     if A.debug==1 then print core.text("color","#FFFFFF")+typeof(bat)
     s=A.hardware_server.scp("/root/lib/metaxploit.so",A.dropzone.path,shell)
-    sr=bat.set_content("meta=include_lib("""+A.dropzone.path+"/metaxploit.so"")"+char(10)+"get_custom_object[""local_meta""]=meta"+char(10)+"get_custom_object[""local_switch""]=get_switch"+char(10)+"get_custom_object[""local_router""]=get_router"+char(10)+"get_custom_object[""local_rshell""]=include_lib(""/lib/librshell.so"")"+char(10)+"exit")
+    s=A.hardware_server.scp("/root/lib/crypto.so",A.dropzone.path,shell)
+    sr=bat.set_content("crypto=include_lib("""+A.dropzone.path+"/crypto.so"")"+char(10)+"meta=include_lib("""+A.dropzone.path+"/metaxploit.so"")"+char(10)+"get_custom_object[""local_meta""]=meta"+char(10)+"get_custom_object[""local_crypto""]=crypto"+char(10)+"get_custom_object[""local_switch""]=get_switch"+char(10)+"get_custom_object[""local_router""]=get_router"+char(10)+"get_custom_object[""local_rshell""]=include_lib(""/lib/librshell.so"")"+char(10)+"exit")
     if typeof(sr) == "string" then
         user_input("There was an error while setting file content 21: " + sr)
      else
@@ -21,10 +22,11 @@ A.local_shit=function(shell=null)
          else
             bat.set_content(A.log_msg)
             shell.launch(A.dropzone.path+"/"+A.payload_name)
-            A.sessions.local_object={"local_meta":get_custom_object["local_meta"],"local_router":get_custom_object["local_router"],"local_rshell":get_custom_object["local_rshell"]}
+            A.sessions.local_object={"local_meta":get_custom_object["local_meta"],"local_crypto":get_custom_object["local_crypto"],"local_router":get_custom_object["local_router"],"local_rshell":get_custom_object["local_rshell"]}
          end if
         end if
         if A.sessions.local_object.len>0 then
+            if typeof(A.sessions.local_object["local_crypto"])!="cryptoLib" then;user_input(core.text("color","#AA0000")+"Failed Getting Local Crypto");else;print (core.text("color","#FFFFFF")+"Got Local Crypto");end if
             if typeof(A.sessions.local_object["local_meta"])!="MetaxploitLib" then;user_input(core.text("color","#AA0000")+"Failed Getting Local Meta");else;print (core.text("color","#FFFFFF")+"Got Local Meta");end if
             if typeof(A.sessions.local_object["local_router"])!="router" then;user_input(core.text("color","#AA0000")+"Failed Getting Local Router");else;print (core.text("color","#FFFFFF")+"Got Local Router");end if
         end if
@@ -2631,5 +2633,68 @@ A.programs.wifi.run=function(params)
         else
             if computer.File("/home/"+active_user+"/file.cap") and computer.File("/home/"+active_user+"/file.cap").has_permission("w") then computer.File("/home/"+active_user+"/file.cap").delete
         end if
+    end if
+end function
+
+A.programs.encrypt={"name":"encrypt","desc":"Encrypts a file using a password","usg":"XXX","req":"shell"}
+A.programs.encrypt.run=function(params)
+    A.local_shit(A.sessions.current)
+    remote_crypto=A.sessions.local_object.local_crypto
+    object=core.req_file(A.sessions.current)
+    if params.len==3 then 
+        pathFile=params[1]
+        pass=params[2]
+    else
+        pathFile=user_input("File to Encrypt:")
+        pass = user_input("Encryption Password:")
+    end if
+    if typeof(remote_crypto)!="cryptoLib" then
+        print "ERR: "+self.name+" Could not get local crypto got:"+typeof(remote_crypto)+":"+remote_crypto
+        user_input("SHIT Broke")
+    end if
+    temp=core.find(object)
+    matches=[]
+    for file in temp.files
+        if file.name.lower==pathFile.lower then
+            matches.push(file)
+        end if
+    end for
+    file=core.check_match(matches)
+    encrypt_process=remote_crypto.encrypt(file.path,pass)
+    if typeof(encrypt_process)=="string" then
+        print "ERR: "+encrypt_process
+    else
+        print "Encrypted File "+file.path+ " With Password:"+pass
+    end if
+end function
+A.programs.decrypt={"name":"decrypt","desc":"Decrypt a file using a password","usg":"XXX","req":"shell"}
+A.programs.decrypt.run=function(params)
+    A.local_shit(A.sessions.current)
+    remote_crypto=A.sessions.local_object.local_crypto
+    if typeof(remote_crypto)!="cryptoLib" then
+        print "ERR: "+self.name+" Could not get local crypto got:"+typeof(remote_crypto)+":"+remote_crypto
+        user_input("SHIT Broke")
+    end if
+    object=core.req_file(A.sessions.current)
+    if params.len==3 then 
+        pathFile=params[1]
+        pass=params[2]
+    else
+        pathFile=user_input("File to Decrypt:")
+        pass = user_input("Decryption Password:")
+    end if
+    temp=core.find(object)
+    matches=[]
+    for file in temp.files
+        if file.name.lower==pathFile.lower then
+            matches.push(file)
+        end if
+    end for
+    file=core.check_match(matches)
+    decrypt_process=remote_crypto.decrypt(file.path,pass)
+    if typeof(decrypt_process)=="string" then
+        print "ERR: "+decrypt_process
+    else
+        print "Decypted File "+file.path+ " With Password:"+pass
     end if
 end function
