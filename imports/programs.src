@@ -2014,7 +2014,7 @@ A.programs.elaunch.run=function(params)
     shell.launch("/usr/bin/"+opt)
     A.Bash
 end function
-A.programs.traffic={"name":"traffic","desc":"Interface with the Traffic Cams","type":"live","usg":"XXX","req":"shell"}
+A.programs.traffic={"name":"traffic","desc":"Interface with the Traffic Cams","type":"dev","usg":"XXX","req":"shell"}
 A.programs.traffic.run=function(params)
 end function
 A.programs.light={"name":"light","desc":"Show all Folders and Files on the system","type":"live","usg":"XXX","req":"file"}
@@ -2632,7 +2632,6 @@ A.programs.wifi.run=function(params)
         end if
     end if
 end function
-
 A.programs.encrypt={"name":"encrypt","desc":"Encrypts a file using a password","type":"live","usg":"XXX","req":"shell"}
 A.programs.encrypt.run=function(params)
     A.local_shit(A.sessions.current)
