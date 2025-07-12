@@ -158,7 +158,7 @@ setup=function
             if typeof(A.reshell_server)=="shell" then 
                 A.programs.logs.run(A.reshell_server)
             else
-                A.rshell_server=get_shell
+                A.reshell_server=get_shell
             end if
         else
             if A.ssh_encrypt==1 then
