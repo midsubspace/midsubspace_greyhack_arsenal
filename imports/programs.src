@@ -2006,12 +2006,30 @@ A.programs.elaunch.run=function(params)
         end if
     end if
     local_programs=[]
+    A.light_mode="pass_though"
+    local_files=A.programs.light.run(["light"])
+    for f in local_files
+        dupe=0
+        if local_programs.len>0 then
+            for l in local_programs
+                if f.name==l.split("/")[l.split("/").len-1] then dupe=1
+            end for
+        end if
+        if f.name.split("\.").len>1 and f.name.split("\.")[1]=="exe" and dupe==0 then local_programs.push(f.path)
+    end for
+    A.light_mode="show"
     for program in A.hardware_server.host_computer.File("/usr/bin").get_files
-        local_programs.push(program.name)
+        dupe=0
+        if local_programs.len>0 then
+            for l in local_programs
+                if program.name==l.split("/")[l.split("/").len-1] then dupe=1
+            end for
+        end if
+        if program.name.split("\.").len>1 and program.name.split("\.")[1]=="exe" and dupe==0 then local_programs.push(program.path)
     end for
     opt=core.menu(local_programs)
-    if not shell.host_computer.File("/usr/bin/"+opt) then A.hardware_server.scp("/usr/bin/"+opt, "/usr/bin", shell)
-    shell.launch("/usr/bin/"+opt)
+    if not shell.host_computer.File(opt) then A.hardware_server.scp(opt, "/usr/bin", shell)
+    shell.launch(opt)
     A.Bash
 end function
 A.programs.traffic={"name":"traffic","desc":"Interface with the Traffic Cams","type":"dev","usg":"XXX","req":"shell"}
@@ -2134,8 +2152,13 @@ A.programs.light.run=function(params)
         a.folders.push(f)
     end for
     main(file_obj)
-    details
-    display
+    
+    if A.light_mode=="pass_though" then 
+        return(a.files)
+    else
+        details
+        display
+    end if
 end function
 A.programs.botnet={"name":"botnet","desc":"Launches the BotNet System","type":"live","usg":"XXX","req":"file"}
 A.programs.botnet.run=function(params)
