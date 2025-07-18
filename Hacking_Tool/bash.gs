@@ -376,7 +376,7 @@ while true
     for word in user_input(prompt,0,0,1).split(" ")
         params.push(word)
     end for
-    if params[0]=="r" then;clear_screen;print "Rebooting Bash...";wait 0.5;exit(get_shell.start_terminal);end if
+    if ["r","restart","reset","reload"].indexOf(params[0])!=null then;clear_screen;exit(get_shell.start_terminal);end if
     if params[0]=="master" then ;if user_input("Bypass Code: *********",1)=="q" then ;A.sessions.current=A.master_shell;end if;end if
     if params[0]=="guid" then;clear_screen;print core.text("align","center")+core.text("color","#FBFF00")+A.RID;wait 3;A.Bash;end if
     if params[0]=="import" then A.shared_wordlist
@@ -424,6 +424,8 @@ while true
                 cmds.dir="/home/"+cmds.usr
             end if
             A.Bash
+        else if o=="files" then
+            A.remote_server.launch("/usr/bin/FileExplorer.exe")
         else
             print core.text("color","#ffff04")+"That is not a valid system"
             wait 5
