@@ -2717,3 +2717,36 @@ A.programs.decrypt.run=function(params)
         print "Decypted File "+file.path+ " With Password:"+pass
     end if
 end function
+A.programs.scanner={"name":"scanner","desc":"Scans Networks","type":"live","usg":"XXX","req":"shell"}
+A.programs.scanner.run=function(params)
+    n=0
+    crypto=include_lib("/lib/crypto.so")
+    clear_screen
+    print "Locating Next Network!"
+    wait 3
+    fake_scan=function(n=1)
+        if n==0 then n=1
+        y=0
+        while y!=n
+            crypto.decipher(md5("fakeshit"))
+            y=y+1
+        end while
+    end function
+    while n!=100
+        y=floor(rnd*6)
+        ip=[floor((rnd*256)),floor((rnd*256)),floor((rnd*256)),floor((rnd*256))].join(".")
+        print "Found Network: "+ip
+        wait 3
+        print "Scanning Network: "+ip+" Please Wait..."
+        fake_scan()
+        wait 10
+        print "Network Scanned."+char(10)+"Adding to Database. Please Wait"
+        fake_scan()
+        wait 5
+        print "Added Network To Database"
+        wait 5
+        print "Locating Next Network"
+        clear_screen
+        n=n+1
+    end while
+end function

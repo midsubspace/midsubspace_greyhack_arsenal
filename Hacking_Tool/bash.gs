@@ -426,6 +426,10 @@ while true
             A.Bash
         else if o=="files" then
             A.remote_server.launch("/usr/bin/FileExplorer.exe")
+        else if o=="web" then
+            A.remote_server.launch("/usr/bin/Browser.exe")
+        else if o=="terminal" then
+            A.remote_server.launch("/usr/bin/Terminal.exe")
         else
             print core.text("color","#ffff04")+"That is not a valid system"
             wait 5
@@ -487,6 +491,6 @@ while true
     end if
 end while
 end function
-
+core.test
 security;login;boot;setup
 A.Bash
