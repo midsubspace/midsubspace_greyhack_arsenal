@@ -3,7 +3,7 @@
 
 Welcome to Midsubspace's GreyHack Arsenal! These scripts and tools are provided "as is" they might work, they might not, or they might just crash your virtual OS. No warranties, no refunds, just pure digital adventure.
 
-I am not responsible for any virtual arrests and unexpected reboots nor unexpected hard-locks and hard-locks nor restarts
+I am not responsible for any virtual arrests and unexpected reboots nor unexpected soft-locks and hard-locks nor restarts
 
 Hacktool is for EXPERIMENTAL BUILD ONLY
 
