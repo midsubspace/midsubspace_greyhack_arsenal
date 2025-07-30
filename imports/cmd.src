@@ -1,0 +1,930 @@
+cmds={}
+cmds.programs={}
+cmds.programs.terminal={"name":"terminal","desc":"Starts Terminal","type":"live","usg":"XXX","req":"shell"}
+cmds.programs.terminal.run=function(p,object)
+    object=core.req_shell(A.sessions.current)
+        if cmds.usr=="root" then 
+            A.programs.elaunch.run(["elaunch","Terminal"])
+        end if
+        A.programs.elaunch.run(["elaunch","Terminal"])
+    return
+end function
+cmds.programs.objects={"name":"objects","desc":"testing","type":"dev","usg":"XXX","req":"file"}
+cmds.programs.objects.run=function(p,object)
+    if p.len==1 then return
+    if p[1]=="shell" then
+        A.sessions.current=get_shell
+    else if p[1]=="computer" then
+        A.sessions.current=get_shell.host_computer
+    else if p[1]=="file" then
+        A.sessions.current=get_shell.host_computer.File("/")
+    end if
+end function
+cmds.programs.reboot={"name":"reboot","desc":"Reboots System","type":"live","usg":"XXX","req":"computer"}
+cmds.programs.reboot.run=function(p,object)
+    shell=core.req_shell(object)
+    if user_input("YOU ARE ABOUT TO REBOOT "+shell.host_computer.public_ip+"@"+shell.host_computer.local_ip+" Y/N")=="Y" then shell.host_computer.reboot
+    A.sessions.current=A.master_shell
+    A.Bash
+end function
+cmds.programs.cleanup={"name":"cleanup","desc":"Kills all Running Programs","type":"live","usg":"XXX","req":"computer"}
+cmds.programs.cleanup.run=function(p,object)
+    object=core.req_computer(object)
+    if typeof(object)=="shell" then object=object.host_computer
+    output=object.show_procs
+    list=output.split(char(10))[1:]
+    for item in list
+        closeResult=object.close_program(item.split(" ")[1].to_int)
+        if typeof(closeResult) == "string" then
+            print("There was an error when closing a program: " + closeResult)
+            core.test
+         else
+            print("Program with pid " + item.split(" ")[1] + " got successfully closed.")
+         end if
+    end for
+    
+end function
+cmds.programs.cls={"name":"cls","desc":"Clears Terminal","type":"live","usg":"XXX","req":"file"}
+cmds.programs.cls.run=function(p,object);cmds.programs.clear.run(0,0);end function
+cmds.programs.clear={"name":"clear","desc":"Clears Terminal","type":"live","usg":"XXX","req":"file"}
+cmds.programs.clear.run=function(p,object=null);clear_screen;end function
+cmds.programs.exit={"name":"exit","desc":"Exits the OS","type":"live","usg":"XXX","req":"file"}
+cmds.programs.exit.run=function(p,object);cmds.programs.quit.run(0,0);end function
+cmds.programs.quit={"name":"quit","desc":"Exits the OS","type":"live","usg":"XXX","req":"file"}
+cmds.programs.quit.run=function(p,object);exit;end function
+cmds.programs.ps={"name":"ps","desc":"Prints processes running on working server","type":"live","usg":"XXX","req":"computer"}
+cmds.programs.ps.run=function(p,object)
+    object=core.req_computer(object)
+    if typeof(object)=="shell" then object=object.host_computer
+    output=object.show_procs
+    cpu_load=0.0
+    mem_load=0.0
+    tasks=0
+    list=output.split(char(10))[1:]
+    for item in list
+        parsedItem = item.split(" ")
+        cpu_load=cpu_load+parsedItem[2][:-1].val
+        mem_load=mem_load+parsedItem[3][:-1].val
+        tasks+=1
+    end for
+    print core.text("color","#FFFFFF")+"Tasks:"+tasks+"  "+core.text("color","#FFFFFF")+"CPU_Usage:"+core.text("color","#21bcff")+cpu_load+"%"+"  "+core.text("color","#FFFFFF")+"Memory_Usage:"+core.text("color","#21bcff")+mem_load+"%"+char(10)+core.format(output)
+end function
+cmds.programs.pwd={"name":"pwd","desc":"Prints working folder","type":"live","usg":"XXX","req":"file"}
+cmds.programs.pwd.run=function(p,object)
+    print core.text("color","#FFFFFF")+cmds.dir
+end function
+cmds.programs.ifconfig={"name":"ifconfig","desc":"Prints working network infomation","type":"live","usg":"XXX","req":"computer"}
+cmds.programs.ifconfig.run=function(p,object)
+    if A.debug!=1 then clear_screen
+    object=core.req_computer(object)
+    if p.len!=1 and (p.len!=5 or p[1]=="-h") then print command_info("ifconfig_usage")
+    if p.len==1 then
+        if A.sessions.local_object.hasIndex("local_router") then router=A.sessions.local_object["local_router"]
+        if object.is_network_active then
+            lip=object.local_ip
+            pip=object.public_ip
+            gw=object.network_gateway
+            output=char(10)+"Ethernet connection:"
+            if object.active_net_card=="WIFI" and A.sessions.local_object.hasIndex("local_router") then output=char(10)+"Connected to Wifi:"+char(10)+"Tomascove_MA0L"+"["+"76:CA:41:19:A6:B1"+"]"
+        else
+            output="No Internet Connection"
+        end if
+        print output + "\n----------------\nPublic IP: " + pip + "\nLocal IP: " + lip + "\nGateway: " + gw + "\n"
+        A.Bash
+    else
+        if p[1]!="gateway" then print command_info("ifconfig_usage")
+        netdevice=p[2]
+        address=p[3]
+        gateway=p[4]
+        if not is_valid_ip(address) then print "ifconfig: invalid ip address"
+        if not is_valid_ip(gateway) then print "ifconfig: invalid gateway"
+        output=object.connect_ethernet(netdevice,address,gateway)
+        if output.len>0 then print output
+    end if
+end function
+cmds.programs.iwlist={"name":"iwlist","desc":"Prints list of nearby wifi networks","type":"live","usg":"XXX","req":"computer"}
+cmds.programs.iwlist.run=function(p,object)
+    object=core.req_computer(object)
+    if p.len != 2 or p[1] == "-h" or p[1] == "--help" then;print command_info("iwlist_usage");A.Bash;end if
+    devices=object.network_devices
+    if devices == null or devices.indexOf(p[1]) == null then print("iwlist: Network device not found")
+    if p[1].indexOf("eth") != null then print("iwlist: ethernet cards not supported for this command")
+    networks = object.wifi_networks(p[1])
+    if networks == null then ;print(command_info("iwlist_usage"));A.Bash;end if
+    info = "BSSID PWR ESSID"
+    for network in networks
+        info = info + char(10) + network
+    end for
+    print core.format(info)
+end function
+cmds.programs.cat={"name":"cat","desc":"Prints content of given file","type":"live","usg":"XXX","req":"file"}
+cmds.programs.cat.run=function(p,object)
+    object=core.req_file(object)
+    if p.len!=2 or p[1]=="-h" or p[1]=="--help" then ;print command_info("cat_usage");A.Bash;end if
+    pathFile=p[1]
+    temp=core.find(object)
+    matches=[]
+    for file in temp.files
+        if file.name.lower==pathFile.lower and not file.is_binary and not file.is_folder then
+            matches.push(file)
+        end if
+    end for
+    file=core.check_match(matches)
+    if file==null then;print "cat:Unable to core.find:"+pathFile;A.Bash;end if
+    if file.is_binary then
+        print core.text("color","#FFFFFF")+"File is a binary!"
+        A.Bash
+    else if file.has_permission("r") then
+        if file.get_content=="" then
+            print core.text("color","#FFFFFF")+"File:"+file.path+" Is Blank!"
+            A.Bash
+        else
+            print core.text("color","#FFFFFF")+"Content of File:"+file.path+char(10)+file.get_content
+            A.Bash
+        end if
+    end if
+    
+end function
+cmds.programs.rm={"name":"rm","desc":"Deletes given file/folder","type":"live","usg":"XXX","req":"file"}
+cmds.programs.rm.run=function(p,object)
+    object=core.req_file(object)
+    pathFile=p[1]
+    if cmds.usr!="root" then;if user_input(core.text("color","#FFFFFF")+"This Will Leave a Log Entry! continue y/n> ")!="y" then A.Bash;end if
+    temp=core.find(object)
+    matches=[]
+    for file in temp.files
+        if file.name.lower==pathFile.lower then
+            matches.push(file)
+        end if
+    end for
+    for folder in temp.folders
+        if folder.name.lower==pathFile.lower then
+           matches.push(folder)
+        end if
+    end for
+    file=core.check_match(matches)
+    if file==null then;print "rm:Unable to core.find:"+pathFile;A.Bash;end if
+    if file.has_permission("w") then
+        if user_input(core.text("color","#FFFFFF")+"You are about to delete:"+file.path+" y/n> ")!="y" then A.Bash
+        file.delete
+        if cmds.usr=="root" then A.programs.logs.run(object)
+    else
+        print core.text("color","#FFFFFF")+"rm:You do not have permissions to delete:"+file.path
+        A.Bash
+    end if
+end function
+cmds.programs.mv={"name":"mv","desc":"Moves given file to the give folder","type":"live","usg":"XXX","req":"file"}
+cmds.programs.mv.run=function(p,object)//TODO test
+    object=core.req_file(object)
+    if p.len!=3 then
+        print command_info("mv_usage")
+        A.Bash
+    else
+        origFile=p[1]
+        destFolder=p[2]
+        temp=core.find(object)
+        matches=[]
+        for file in temp.files
+            if file.name==origFile or file.path==origFile then matches.push(file)
+        end for
+        origFile=core.check_match(matches)
+        if typeof(origFile)!="file" then;print core.text("color","#FFFFFF")+"mv:can't core.find:"+p[1];A.Bash;end if
+        matches=[]
+        for folder in temp.folders
+            if folder.name.lower==destFolder.lower then matches.push(folder)
+        end for
+        destFolder=core.check_match(matches)
+        if destFolder==null then;print "mv:can't core.find:"+p[1]
+            print "mv: can't copy file. " + destFolder + " doesn't exist."
+            A.Bash
+        else
+            destFolder=matches[0]
+        end if
+        newName=origFile.name
+        if user_input("Rename "+origFile.name+" y/n> ")=="y" then newName=user_input("New Name:")
+        if user_input("You are about to move "+origFile.path+" to "+destFolder.path+" and rename it to "+newName+" y/n> ")!="y" then A.Bash
+        moveResult=origFile.move(destFolder.path,newName)
+        if typeof(moveResult) == "string" then
+            print("There was an error while moving file: " + moveResult)
+         else
+            print("File got moved successfully.")
+         end if
+    end if
+end function
+cmds.programs.cp={"name":"cp","desc":"Copys given file to the given folder","type":"live","usg":"XXX","req":"file"}
+cmds.programs.cp.run=function(p,object)//TODO test
+    object=core.req_file(object)
+    if p.len!=3 or p[1]=="-h" or p[1]=="--help" then;print command_info("cp_usage");A.Bash;end if
+    origFile=p[1]
+    destFolder=p[2]
+    temp=core.find(object)
+    matches=[]
+    for file in temp.files
+        if file.name.lower==origFile.lower then
+            matches.push(file)
+        end if
+    end for
+    for folder in temp.folders
+        if folder.name.lower==origFile.lower then
+           matches.push(folder)
+        end if
+    end for
+    origFile=core.check_match(matches)
+    if origFile==null then;print core.text("color","#FFFFFF")+"cp:Unable to core.find:"+p[1];A.Bash;end if
+    matches=[]
+    for folder in temp.folders
+        if folder.name.lower==destFolder.lower then
+           matches.push(folder)
+        end if
+    end for
+    destFolder=core.check_match(matches)
+    if destFolder==null then;print core.text("color","#FFFFFF")+"cp: can't copy "+origFile.path+". "+p[2]+" doesn't exist.";A.Bash;end if
+    newName=origFile.name
+    if user_input("Rename "+origFile.name+" y/n> ")=="y" then newName=user_input("New Name:")
+    if user_input("You are about to copy "+origFile.path+" to "+destFolder.path+" and rename it to "+newName+" y/n> ")!="y" then A.Bash
+    copyResult=origFile.copy(destFolder.path,newName)
+    if typeof(copyResult) == "string" then
+        print("There was an error while copying file: " + copyResult)
+    else
+        print("File got copying successfully.")
+    end if
+end function
+cmds.programs.ssh={"name":"ssh","desc":"Connects to given server using SSH protocal","type":"live","usg":"XXX","req":"shell"}
+cmds.programs.ssh.run=function(p,object)//TODO test
+    object=core.req_shell(object)
+    if ((p.len < 2 or p.len > 4) and p[1]!="-h") then print(command_info("ssh_usage"))
+    if p[1]=="-h" then
+        history=A.computer.File(A.ram.path+"/history")
+        lines=A.computer.File(history.path+"/ssh").get_content.split(char(10))
+        options=[]
+        for line in lines
+            if line=="" or options.indexOf(line)!=null then continue
+            options.push(line)
+        end for
+        line=core.menu(options)
+        credentials=line.split(":")[0]
+        ip=line.split(":")[1]
+        credentials = credentials.split("@")
+    else
+        ip=p[2]
+        credentials=p[1].split("@")
+    end if
+    user=credentials[0]
+    password=credentials[1]
+    port=22
+    if p.len==4 then port=p[3].val
+    if typeof(port)!="number" then;print core.text("color","#FFFFFF")+"ssh:Invalid Port:"+port;A.Bash;end if
+    print "Connecting..."
+    shell=object.connect_service(ip,port,user,password,"ssh")
+    if typeof(shell)=="shell" then
+        A.computer.create_folder(A.ram.path,"history")
+        history=A.computer.File(A.ram.path+"/history")
+        A.computer.create_folder(A.ram.path,"history")
+        history=A.computer.File(A.ram.path+"/history")
+        A.computer.touch(history.path,"ssh")
+        sshh=A.computer.File(history.path+"/ssh")
+        sshh.set_content(sshh.get_content+char(10)+user+"@"+password+":"+ip)
+        A.sessions.current=shell
+        A.sessions.shells.push({"object":shell,"user":user})
+        A.local_shit(shell)
+        cmds.usr=core.check_user(shell)
+        if cmds.usr=="root" then 
+            cmds.dir="/root"
+        else if cmds.usr=="guest" then
+            cmds.dir="/home/guest"
+        else
+            cmds.dir="/home/"+cmds.usr
+        end if
+        A.Bash
+    else
+        print "ssh:Error Getting Shell:"+shell
+        A.Bash
+    end if
+end function
+cmds.programs.ftp={"name":"ftp","desc":"Connects to given server using FTP protocal","type":"live","usg":"XXX","req":"shell"}
+cmds.programs.ftp.run=function(p,object)//TODO test
+    object=core.req_shell(object)
+    if p.len>1 then ip=p[2]
+    if p.len>2 then credentials=p[1].split("@")
+    if ((p.len < 3 or p.len > 4) and p[1]!="-h") then print(command_info("ftp_usage"))
+    if p[1]=="-h" then
+        history=A.computer.File(A.ram.path+"/history")
+        lines=A.computer.File(history.path+"/ftp").get_content.split(10)
+        options=[]
+        for line in lines
+            if line=="" then continue
+            options.push(line)
+        end for
+        line=core.menu(options)
+        credentials=line.split(":")[0]
+        ip=line.split(":")[1]
+        credentials = credentials.split("@")
+    end if
+    user=credentials[0]
+    password=credentials[1]
+    port=22
+    if p.len==4 then port=p[3].val
+    if typeof(port)!="number" then;print core.text("color","#FFFFFF")+"ftp:Invalid Port:"+port;A.Bash;end if
+    print "Connecting..."
+    shell=object.connect_service(ip,port,user,password,"ftp")
+    if typeof(shell)=="shell" then
+        A.computer.create_folder(A.ram.path,"history")
+        history=A.computer.File(A.ram.path+"/history")
+        A.computer.create_folder(A.ram.path,"history")
+        history=A.computer.File(A.ram.path+"/history")
+        A.computer.touch(history.path,"ftp")
+        ftph=A.computer.File(history.path+"/ftp")
+        ftph.set_content(sssh.get_content+char(10)+user+"@"+password+":"+ip)
+        A.sessions.current=shell
+        A.Bash
+    else
+        print "ftp:Error Getting Shell:"+shell
+        A.Bash
+    end if
+end function
+cmds.programs.mkdir={"name":"mkdir","desc":"Creates folder in given folder","type":"live","usg":"XXX","req":"computer"}
+cmds.programs.mkdir.run=function(p,object)//TODO test
+    object=core.req_computer(object)
+    if p.len!=2 or p[1]=="-h" or p[1]=="--help" then;print command_info("mkdir_usage");A.Bash;end if
+    pathFile=p[1]
+    pathParent=parent_path(pathFile)
+    existFile=object.File(pathFile)
+    if pathParent==pathFile then pathParent=cmds.dir
+    parent=object.File(pathParent)
+    if parent==null then
+        print core.text("color","#FFFFFF")+"mk:"+pathParent+" not found!"
+        A.Bash
+    else if existFile != null then
+        print core.text("color","#FFFFFF")+"mk:"+existFile.path+" file exists"
+        A.Bash
+    else if not parent.has_permission("w") then
+        print core.text("color","#FFFFFF")+"mk:permission denied"
+        A.Bash
+    else
+        arrayPath=pathFile.split("/")
+        createResult=object.create_folder(parent.path,arrayPath[arrayPath.len-1])
+        if typeof(createResult) == "string" then
+            print core.text("color","#FFFFFF")+"There was an error when creating the folder: " + createResult
+            A.Bash
+         else
+            print core.text("color","#FFFFFF")+"Folder got created at given path " + path
+            A.Bash
+         end if
+    end if
+end function
+cmds.programs.rmdir={"name":"rmdir","desc":"Deletes given folder","type":"live","usg":"XXX","req":"file"}
+cmds.programs.rmdir.run=function(p,object)//TODO test
+    cmds.programs.rm(p,object)
+    return
+end function
+cmds.programs.chmod={"name":"chmod","desc":"Changes user permissions of a given file","type":"live","usg":"XXX","req":"file"}
+cmds.programs.chmod.run=function(p,object)//TODO test
+    object=core.req_file(object)
+    if p.len<3 or (p.len==3 and p[1]!="-r") then print command_info("chmod_usage")
+    permissions=p[1]
+    pathFile=p[2]
+    isRecursive=0
+    if p.len==4 then
+        permissions=p[2]
+        pathFile=p[3]
+        isRecursive=1
+    end if
+    temp=core.find(object)
+    matches=[]
+    for file in temp.files
+        if file.name.lower==pathFile.lower then
+            matches.push(file)
+        end if
+    end for
+    for folder in temp.folders
+        if folder.name.lower==pathFile.lower then
+           matches.push(folder)
+        end if
+    end for
+    file=core.check_match(matches)
+    if file==null then;print "chmod:Unable to core.find:"+pathFile;A.Bash;end if
+    if file.has_permission("w") then
+        output=file.chmod(permissions,isRecursive)
+        if output then print core.text("color","#FFFFFF")+output
+    else
+        print core.text("color","#FFFFFF")+"chmod:You don't have permissions to chmod "+file.path
+    end if
+end function
+cmds.programs.whois={"name":"whois","desc":"Prints infomation about the given ip","type":"live","usg":"ip/url","req":"file"}
+cmds.programs.whois.run=function(p,object)
+    if p.len!=2 then
+        if typeof(object)=="shell" then
+            address=object.host_computer.public_ip
+            if not is_valid_ip(address) then address=nslookup(address)
+            print whois(address)
+        else if typeof(object)=="computer" then
+            address=object.public_ip
+            if not is_valid_ip(address) then address=nslookup(address)
+            print whois(address)
+        else
+            address=p[1]
+            if not is_valid_ip(address) then address=nslookup(address)
+            print whois(address)
+        end if
+    else
+        address=p[1]
+        if not is_valid_ip(address) then address=nslookup(address)
+        print whois(address)
+    end if
+end function
+cmds.programs.useradd={"name":"useradd","desc":"Creates given user account","type":"live","usg":"XXX","req":"computer"}
+cmds.programs.useradd.run=function(p,object)//TODO test
+    object=core.req_computer(object)
+    if p.len!=2 then print command_info("useradd_usage")
+    inputMsg="Setting password for user "+p[1]+char(10)+"New password: "
+    inputPass=user_input(inputMsg)
+    output=object.create_user(p[1],inputPass)
+    if output==true then;print core.text("color","#FFFFFF")+"Created User Account For:"+p[1];A.Bash;end if
+    if output then;print core.text("color","#FBFF00")+output;A.Bash;end if
+end function
+cmds.programs.userdel={"name":"userdel","desc":"Deletes given user","type":"live","usg":"XXX","req":"computer"}
+cmds.programs.userdel.run=function(p,object)//TODO test
+    object=core.req_computer(object)
+    if p.len!=2 then print command_info("userdel_usage")
+    if p[1]=="-r" then;delete=1;user=p[2];else;delete=0;user=[1];end if
+    output=object.delete_user(user,delete)
+    if output==true then;print core.text("color","#FFFFFF")+"Deleted User Account For:"+user;A.Bash;end if
+    if output then;print core.text("color","#FBFF00")+output;A.Bash;end if
+end function
+cmds.programs.passwd={"name":"passwd","desc":"Change password of given user","type":"live","usg":"XXX","req":"computer"}
+cmds.programs.passwd.run=function(p,object)//TODO test
+    object=core.req_computer(object)
+    if p.len!=2 then print command_info("passwd_usage")
+    inputMsg="Changing password for user "+p[1]+char(10)+"New password: "
+    inputPass=user_input(inputMsg)
+    output=object.change_password(p[1],inputPass)
+    if output==true then;print core.text("color","#FFFFFF")+"Modified Password User For:"+p[1];A.Bash;end if
+    if output then;print core.text("color","#FFFFFF")+"passwd:Password not Modifed for ";A.Bash;end if
+end function
+cmds.programs.nslookup={"name":"nslookup","desc":"Prints ip address from given url","type":"live","usg":"XXX","req":"file"}
+cmds.programs.nslookup.run=function(p,object)
+    if p.len!=2 then;print command_info("nslookup_usage");A.Bash;end if
+    print core.text("color","#FFFFFF")+"Address:"+nslookup(p[1])
+end function
+cmds.programs.build={"name":"build","desc":"Build program from an .src file","type":"live","usg":"XXX","req":"shell"}
+cmds.programs.build.run=function(p,object)//TODO test
+    object=core.req_shell
+    if p.len!=3 then;print command_info("build_usage");A.Bash;end if
+    pathSource=p[1]
+    programPath=p[2]
+    temp=core.find(object)
+        matches=[]
+        for file in temp.files
+            if file.name.lower==pathSource.lower then matches.push(file)
+        end for
+        pathSource=core.check_match(matches)
+        if pathSource==null then;print core.text("color","#FFFFFF")+"buld:can't core.find:"+p[1];A.Bash;end if
+        matches=[]
+        for folder in temp.folders
+            if folder.name.lower==programPath.lower then matches.push(folder)
+        end for
+        programPath=core.check_match(matches)
+        if programPath==null then;print core.text("color","#FFFFFF")+"buld:can't core.find:"+p[2];A.Bash;end if
+        output=object.build(pathSource.path,programPath.path)
+        if output.len==0 then
+            print core.text("color","#FFFFFF")+"build successful."
+            A.Bash
+        else
+            print core.text("color","#FFFFFF")+output
+            A.Bash
+        end if
+end function
+cmds.programs.touch={"name":"touch","desc":"Creates a blank text file","type":"live","usg":"file_name","req":"computer"}
+cmds.programs.touch.run=function(p,object)//TODO test
+    object=core.req_computer(object)
+    if p.len!=2 then;print core.text("color","#FFFFFF")+command_info("touch_usage");A.Bash;end if
+    pathFile=p[1]
+    pathParent=parent_path(pathFile)
+    if pathParent==pathFile then pathParent=cmds.dir
+    parent=object.File(pathParent)
+    if not parent then;print core.text("color","#FFFFFF")+"touch:"+ pathParent+" not found";A.Bash;end if
+    if not parent.has_permission("w") then;print core.text("color","#FFFFFF")+"touch:persmiion denied";A.Bash;end if
+    arrayPath=pathFile.split("/")
+    output=object.touch(parent.path,arrayPath[arrayPath.len-1])
+    if output and output!=1 then;print output;A.Bash;end if
+end function
+cmds.programs.chown={"name":"chown","desc":"Changes owner of given file","type":"live","usg":"owner file_path","req":"file"}
+cmds.programs.chown.run=function(p,object)//TODO test
+    object=core.req_file(object)
+    if p.len<3 or (p.len==3 and p[1]!="-r") then; print command_info("chown_usage");A.Bash;end if
+    owner=p[1]
+    pathFile=p[2]
+    isRecursive=0
+    if p.len==4 then;owner=p[2];pathFile=p[3];isRecursive=1;end if
+    temp=core.find(object)
+    matches=[]
+    for file in temp.files
+        if file.name.lower==pathFile.lower then matches.push(file)
+    end for
+    file=core.check_match(matches)
+    if file==null then;print core.text("color","#FFFFFF")+"chown:file not found:"+pathFile;A.Bash;end if
+    ownerResult=file.set_owner(owner,isRecursive)
+    if typeof(ownerResult) == "string" then
+        print("There was an error while changing owner for file: "+file.path+" "+ownerResult)
+        A.Bash
+     else
+        print(file.path+" owner changed successfully.")
+     end if
+end function
+cmds.programs.chgrp={"name":"chgrp","desc":"Changes group of given file","type":"live","usg":"group file_path","req":"file"}
+cmds.programs.chgrp.run=function(p,object)//TODO test
+    object=core.req_file(object)
+    if p.len<3 or (p.len==3 and p[1]!="-r") then; print command_info("chgrp_usage");A.Bash;end if
+    group=p[1]
+    pathFile=p[2]
+    isRecursive=0
+    if p.len==4 then;group=p[2];pathFile=p[3];isRecursive=1;end if
+    temp=core.find(object)
+    matches=[]
+    for file in temp.files
+        if file.name.lower==pathFile.lower then matches.push(file)
+    end for
+    file=core.check_match(matches)
+    if file==null then;print core.text("color","#FFFFFF")+"chgrp:file not found:"+pathFile;A.Bash;end if
+    groupResult=file.set_group(group,isRecursive)
+    if typeof(groupResult) == "string" then
+        print("There was an error while changing groups for file: "+file.path+" "+groupResult)
+        A.Bash
+    else
+        print(file.path+" group changed successfully.")
+    end if
+end function
+cmds.programs.groupadd={"name":"groupadd","desc":"Add the requested group to given user","type":"live","usg":"username groupname","req":"computer"}
+cmds.programs.groupadd.run=function(p,object)//TODO test
+    object=core.req_computer(object)
+    if p.len!=3 then;print command_info("groupadd_usage");A.Bash;end if
+    user=p[1]
+    group=p[2]
+    output=object.create_group(user,group)
+    if output==true then;print core.text("color","#FFFFFF")+"Group "+group+" added to user "+user;A.Bash;end if
+    if ouput then print output
+    print core.text("color","#FBFF00")+"groupadd:The group "+group+" couldn't be added to user "+user
+end function
+cmds.programs.groupdel={"name":"groupdel","desc":"Remove requested group from given user","type":"live","usg":"XXX","req":"computer"}
+cmds.programs.groupdel.run=function(p,object)//TODO test
+    object=core.req_computer(object)
+    if p.len!=3 then;print command_info("groupdel_usage");A.Bash;end if
+    user=p[1]
+    group=p[2]
+    output=object.delete_group(user,group)
+    if output==true then;print core.text("color","#FFFFFF")+"Group "+group+" deleted from user "+user;A.Bash;end if
+    if ouput then print output
+    print core.text("color","#FBFF00")+"groupdel:The group "+group+" couldn't be removed from user "+user
+end function
+cmds.programs.groups={"name":"groups","desc":"Prints the groups the given user is in ","type":"live","usg":"username","req":"computer"}
+cmds.programs.groups.run=function(p,object)//TODO test
+    object=core.req_computer(object)
+    if p.len!=2 then;print command_info("groups_usage");A.Bash;end if
+    user=p[1]
+    output=object.groups(user)
+    if not output then;print command_info("groups_usage");A.Bash;end if
+    print output
+end function
+cmds.programs.kill={"name":"kill","desc":"Ends a currently running process","type":"live","usg":"XXX","req":"computer"}
+cmds.programs.kill.run=function(p,object)//TODO test
+    object=core.req_computer(object)
+    if p.len!=2 then;print command_info("kill_usage");A.Bash;end if
+    PID=p[1].val
+    if typeof(PID)!="number" then;print "kill:The PID must be a number"+char(10)+command_info("kill_usage");A.Bash;end if
+    closeResult=object.close_program(PID)
+    if typeof(closeResult) == "string" then
+        print("There was an error when closing a program: " + closeResult)
+        A.Bash
+     else
+        print("Program with pid " + PID + " got successfully closed.")
+        A.Bash
+     end if
+end function
+cmds.programs.ping={"name":"ping","desc":"Checks if you are able to reach the given ip","type":"live","usg":"XXX","req":"shell"}
+cmds.programs.ping.run=function(p,object)//TODO test
+    object=core.req_shell(object)
+    if p.len != 2 then;print(command_info("ping_usage"));A.Bash;end if
+    result=object.ping(p[1])
+    if result then
+        if typeof(result) == "string" then
+            print(result)
+            A.Bash
+        else
+            print("Ping successful")
+            A.Bash
+        end if
+    else
+        print("ip unreachable")
+        A.Bash
+    end if
+end function
+cmds.programs.apt_get={"name":"apt_get","desc":"apt_get shit","type":"live","usg":"XXX","req":"file"}
+cmds.programs.apt_get.run=function(p,object)//TODO test
+    object=core.req_file(object)
+    aptclient=include_lib("/lib/aptclient.so")
+    if not aptclient then;print "apt_get:Missing aptclient.so libary in the /lib path";A.Bash;end if
+    PendingUpdating=function(folderPath)
+        pendingUpdate=[]
+        temp=core.find(object)
+        matches=[]
+        for folder in temp.folders
+            if folder.name.lower==targetFolder.lower then matches.push(folder)
+        end for
+        targetFolder=core.check_match(matches)
+        if targetFolder!=null then
+            files=targetFolder.get_files
+            for itemFile in files
+                output=aptclient.check_upgrade(itemFile.path)
+                if output==true then
+                    pendingUpdate.push(itemFile.name)
+                end if
+            end for
+        end if
+        return pendingUpdate
+    end function
+    if p.len==0 or p.len>4 then;print command_info("apt-get_usage");A.Bash;end if
+    action=p[1]
+    if action=="update" then
+        print core.text("color","#FFFFFF")+"Updating package lists..."
+        output=aptclient.update
+        if output then print output
+    else if action=="install" then
+        print core.text("color","#FFFFFF")+"Reading package lists..."
+        if p.len!=3 then;print command_info("apt-get_usage");A.Bash;end if
+        print core.text("color","#FFFFFF")+"Donwnloading "+p[2]
+        output=aptclient.install(p[2])
+        if output==true then print p[2]+" installed"
+        print output
+    else if action=="search" then
+        if p.len!=3 then;print command_info("apt-get_usage");A.Bash;end if
+        print aptclient.search(p[2])
+    else if action=="show" then
+        if p.len!=3 then;print command_info("apt-get_usage");A.Bash;end if
+        print aptclient.show(p[2])
+    else if action=="addrepo" then
+        if p.len<3 or p.len>4 then;print command_info("apt-get_usage");A.Bash;end if
+        port=1542
+        if p.len==4 then port=p[3].val
+        output=aptclient.add_repo(p[2],port)
+        if output then print output
+        print "Respository "+p[2]+" added. Launch apt_get with the update option to apply the changes"
+    else if action=="delrepo" then
+        if p.len!=3 then;print command_info("apt-get_usage");A.Bash;end if
+        output=aptclient.del_repo(p[2])
+        if output then print output
+        print "Respository "+p[2]+" deleted. Launch apt_get with the update option to apply the changes"
+    else if action=="upgrade" then
+        if p.len==2 then
+            pendingPackages=PendingUpdating("/lib")+PendingUpdating("/bin")
+            if pendingPackages.len==0 then ;print "No updates needed";A.Bash;end if
+            print "The following packages will be updated:"
+            pkgs=""
+            for itemPackage in pendingPackages
+                pkgs=pkgs+" "+itemPackage
+            end for
+            print pkgs
+            if user_input("Continue y/n> ")!="y" then;print "aborted";A.Bash;end if
+            counter=0
+            for itemPackage in pendingPackages
+                output=aptclient.install(itemPackage)
+                if output==true then
+                    counter=counter+1
+                else if output then
+                    print output
+                end if
+            end for
+            print counter+" packages updated"
+        else if p.len==3 then
+            output=aptclient.check_upgrade(p[2])
+            if not output then print "no updates needed"
+            if output==true then
+                print core.text("color","#FFFFFF")+"The following package will be updated:"+char(10)+p[2]
+                if user_input("Continue y/n> ")!="y" then;print "aborted";A.Bash;end if
+                output=aptclient.install(p[2])
+                if output==true then print p[2]+" installed."
+                print output
+            end if
+        end if
+    else
+        print command_info("apt-get_usage")
+    end if
+end function
+cmds.programs.whoami={"name":"whoami","desc":"Prints name of working user","type":"live","usg":"XXX","req":"file"}
+cmds.programs.whoami.run=function(p,object)//TODO test
+    print cmds.usr
+end function
+cmds.programs.ls={"name":"ls","desc":"Prints list of files in requested folder","type":"live","usg":"folder_name","req":"file"}
+cmds.programs.ls.run=function(p,object)//TODO test
+    object=core.req_file(object)
+    if p.len!=2 then p.push(cmds.dir)
+    folderPath=p[1]
+    temp=core.find(object)
+    matches=[]
+    for folder in temp.folders
+        if folder.name==folderPath then matches.push(folder)
+        if folder.path==folderPath then matches.push(folder)
+    end for
+    folder=core.check_match(matches)
+    if folder==null then;print "ls: unable to core.find "+folderPath;A.Bash;end if
+    showHide=1
+    showDetails=1
+    subFiles=folder.get_folders+folder.get_files
+    output=core.text("color","#FFFFFF")+"<u>Path R:W:X Owner Group Size</u>"
+    for subFile in subFiles
+        pathFile=subFile.path
+        nameFile=subFile.name
+        permission=subFile.permissions
+        readFile=core.perms(subFile.has_permission("r"))
+        writeFile=core.perms(subFile.has_permission("w"))
+        runFile=core.perms(subFile.has_permission("x"))
+        owner=subFile.owner
+        size=subFile.size
+        group=subFile.group
+        output = output+char(10)+core.text("color","#FFFFFF")+subFile.path+" "+readFile+":"+writeFile+":"+runFile+" "+owner+" "+group+" "+size
+    end for
+    if output==core.text("color","#FFFFFF")+"<u>Path R:W:X Owner Group Size</u>"  then;print core.text("color","#FFFFFF")+"Folder:"+folder.path+" is empty";A.Bash;end if
+    print core.text("color","#FFFFFF")+"Scanning:"+p[1]
+    print core.format(output)
+end function
+cmds.programs.cd={"name":"cd","desc":"change working folder","type":"live","usg":"folder_name","req":"file"}
+cmds.programs.cd.run=function(p,object)//TODO test
+    object=core.req_file(object)
+    temp=core.find(object)
+    matches=[]
+    for folder in temp.folders
+        if folder.path==cmds.dir then matches.push(folder)
+    end for
+    folder=core.check_match(matches)
+    if folder==null then;print core.text("color","#FFFFFF")+"cd:Unable to locate:"+p[1];A.Bash;end if
+    if p.len==1 then
+        if cmds.usr=="root" then
+            cmds.dir="/root"
+            return
+        else if cmds.usr=="guest" then
+            cmds.dir="/home/guest"
+            return
+        else
+            cmds.dir="/home/"+cmds.user
+            return
+        end if
+    else
+        if p[1]==".." then
+            if cmds.dir=="/" then A.Bash
+            cmds.dir=folder.parent.path
+        else
+            new_folder=p[1]
+            if new_folder.split("/").len==1 then
+                matches=[]
+                for folder in temp.folders
+                    if folder.name==new_folder then matches.push(folder)
+                end for
+                folder=core.check_match(matches)
+                if folder==null then;print core.text("color","#FFFFFF")+"cd:Unable to locate:"+p[1];A.Bash;end if
+                cmds.dir=folder.path
+                A.Bash
+            else
+                cmds.dir=new_folder
+                A.Bash
+            end if
+        end if
+    end if
+end function
+cmds.programs.decipher={"name":"decipher","desc":"Decrypts the given m5d password","type":"live","usg":"password","req":"file"}
+cmds.programs.decipher.run=function(p,object)//TODO test
+    A.programs.rainbow.run(["rainbow","hash",0,0,p[1],1])
+end function
+cmds.programs.sudo={"name":"sudo","desc":"login as another user","type":"live","usg":"-u username[logins in as the given username] -s[login as root]","req":"shell"}
+cmds.programs.sudo.run=function(p,object)//TODO test
+    object=core.req_shell(object)
+    A.local_shit(object)
+    if A.dropzone==null then ;print "ERROR With dropzone";A.Bash;end if
+    computer=object.host_computer
+    if p[1] == "-u" and p.len != 3 then;print(command_info("sudo_usage"));A.Bash;end if
+    if p[1].trim=="-u" then
+        if computer.File(A.dropzone.path).has_permission("w") then
+            A.shared_payload("create")
+            bat=A.bat
+            file=bat.set_content("user=get_custom_object[""sudo_user""]"+char(10)+"password=get_custom_object[""sudo_password""]"+char(10)+"shell=get_shell(user,password)"+char(10)+"if typeof(shell)==""shell"" then"+char(10)+"get_custom_object[""sudo_shell""]=shell"+char(10)+"else"+char(10)+"get_custom_object[""sudo_shell""]=null"+char(10)+"end if")
+            buildResult = object.build(A.dropzone.path+"/"+A.payload_name+".src",A.dropzone.path)
+            get_custom_object["sudo_user"]=p[2]
+            get_custom_object["sudo_password"]=user_input("Password: ",true)
+            object.launch(A.dropzone.path+"/"+A.payload_name)
+            if get_custom_object["sudo_shell"]!=null then 
+                A.sessions.current=get_custom_object["sudo_shell"]
+                A.Bash
+            else
+                print "sudo: incorrect username or password"
+                A.Bash
+            end if
+        else
+            A.Bash
+        end if
+    else
+        if computer.File(A.dropzone.path).has_permission("w") then
+            A.shared_payload("create")
+            bat=A.bat
+            file=bat.set_content("user=get_custom_object[""sudo_user""]"+char(10)+"password=get_custom_object[""sudo_password""]"+char(10)+"shell=get_shell(user,password)"+char(10)+"if typeof(shell)==""shell"" then"+char(10)+"get_custom_object[""sudo_shell""]=shell"+char(10)+"else"+char(10)+"get_custom_object[""sudo_shell""]=null"+char(10)+"end if")
+            buildResult = object.build(A.dropzone.path+"/"+A.payload_name+".src",A.dropzone.path)
+            get_custom_object["sudo_user"]="root"
+            get_custom_object["sudo_password"]=user_input("Password: ",true)
+            object.launch(A.dropzone.path+"/"+A.payload_name)
+            if get_custom_object["sudo_shell"]!=null then 
+                A.sessions.current=get_custom_object["sudo_shell"]
+                A.Bash
+            else
+                print "sudo: incorrect password"
+                A.Bash
+            end if
+        end if
+    end if
+end function
+cmds.programs.sniffer={"name":"sniffer","desc":"Watches for incoming connections","type":"live","usg":"XXX","req":"computer"}
+cmds.programs.sniffer.run=function(p,object)//TODO test
+    computer=core.req_computer(A.sessions.current)
+    print core.text("color","#FFFFFF")+"Listening for Incoming Connections... On> "+A.sessions.current.host_computer.local_ip
+    A.local_shit(A.sessions.current)
+    print core.text("color","#FFFFFF")+"Listening for Incoming Connections... On> "+A.sessions.current.host_computer.local_ip
+    computer.create_folder("/root","cps")
+    sniff_temp=computer.File("/root/cps/s")
+    if not sniff_temp then computer.touch("/root/cps","s")
+    sniff_temp=computer.File("/root/cps/s")
+    while core.watch_file(sniff_temp.path)==1
+        if A.sessions.local_object["local_meta"].sniffer!=null then 
+            print A.sessions.local_object["local_meta"].sniffer
+        else
+            if core.watch_file(sniff_temp.path)==0 then A.Bash
+        end if
+    end while
+    A.Bash
+end function
+cmds.programs.md5={"name":"md5","desc":"check if plain text password is in game database","type":"live","usg":"plain_password","req":"file"}
+cmds.programs.md5.run=function(p,object)//TODO test
+    print p[1]+":"+md5(p[1])
+    if A.crypto.decipher(md5(p[1]))!=null then 
+        print core.text("color","#00ED03")+"Found in Game DB"
+        A.Bash
+    else
+        print core.text("color","#AA0000")+"Not Found In Game DB"
+        if user_input(core.text("color","#FFFFFF")+"Push "+p[2]+" Into Game DB? y/n")=="y" and active_user=="root" then
+            get_shell.host_computer.create_user("subspace",p[2])
+            get_shell.host_computer.delete_user("subspace",1)
+        end if
+    end if
+end function
+cmds.programs.ping_server={"name":"ping_server","desc":"Test Server Connection 6sec is normal","type":"live","usg":"XXX","req":"file"}
+cmds.programs.ping_server.run=function(p,object)
+    clear_screen;print "Starting Server Test"
+    core.stopwatch("start")
+    for num in range(1000000)
+        isPingable=get_shell.ping("1.1.1.1")
+    end for
+    core.stopwatch("end"," To ping 1.1.1.1 1,000,000 times")
+end function
+cmds.programs.ips={"name":"ips","desc":"Internel Process Handler","type":"live","usg":"XXX","req":"file"}
+cmds.programs.ips.run=function(p,object)
+    computer=core.req_computer(get_shell)
+    tasks={"h":"htop","s":"sniffer","w":"watchdog"}
+    active={}
+    for file in computer.File("/root/cps").get_files
+        active[file.name]=file
+    end for
+    if active.len==0 then
+        print core.text("color","#ffffff")+"Nothing is Running!"
+        A.Bash
+    else
+        options=[]
+        for a in active.indexes
+            options.push(tasks[a])
+        end for
+        task=active[tasks.indexOf(core.menu(options))]
+        print task
+        print typeof(task)
+        if typeof(task)=="file" then task.delete
+    end if
+end function
+cmds.programs.scp={"name":"scp","desc":"Download and Upload files from/to remote/local system","type":"live","usg":"-d[download] -u[upload]","req":"shell"}
+cmds.programs.scp.run=function(p,object)
+    shell=core.req_shell(object)
+    local_shell=get_shell
+    remote_shell=shell
+    if p.len==1 then p.push("-d")
+    if p[1]=="-d" then
+        remote_shell.scp(user_input("File to Download:"),"/root",local_shell)
+    else
+        print core.text("color","#ffffff")+"ftp:Upload has not been added yet!"
+        A.Bash
+    end if
+end function
+cmds.programs.run={"name":"run","desc":"Run Scripts","type":"live","usg":"XXX","req":"shell"}
+cmds.programs.run.run=function(p,object)
+    shell=core.req_shell(object)
+    if shell.host_computer.File("/bin/"+p[1]) then 
+        shell.launch("/bin/"+p[1])
+    else if shell.host_computer.File(current_path+"/"+p[1]) then
+        shell.launch(current_path+"/"+p[1])
+    else if shell.host_computer.File(home_dir+"/Desktop/"+p[1]) then
+        shell.launch(home_dir+"/Desktop/"+p[1])
+    else
+        print "Unable to locate "+p[1];wait 3;A.Bash
+    end if
+end function
