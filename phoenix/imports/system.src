@@ -1,0 +1,141 @@
+print "Imported System.src"
+
+sys={}
+
+sys.aircrack={"name":"aircrack","usage":"[file cap]","req":"file"}
+sys.aircrack.run=function(input)
+    print "Running Aircrack"
+    cryptools = include_lib("/lib/crypto.so")
+    if not cryptools then;print("Error: Missing crypto library");bat.run;end if
+    if input.len != 1 or input[0] == "-h" or input[0] == "--help" then;print(command_info("aircrack_usage"));bat.run;end if
+
+    pathFile = input[0]
+    file = get_shell.host_computer.File(pathFile)
+    if file == null then print("aircrack: file not found: "+pathFile)
+    if not file.is_binary then print("aircrack: Can't process file. Not valid filecap.")		
+    if not file.has_permission("r") then print("aircrack: permission denied")
+
+    key = cryptools.aircrack(file.path)
+    if key then 
+        print("KEY FOUND! [" + key + "]" )
+    else 
+        print("aircrack: Unable to get the key" )
+    end if
+end function
+sys.aireplay={"name":"aireplay","usage":"[-b bssid] [-e essid]","req":"file"}
+sys.aireplay.run=function(input)
+end function
+sys.airmon={"name":"airmon","usage":"XXX","req":"XXX"}
+sys.airmon.run=function(input)
+end function
+sys.aptget={"name":"aptget","usage":"XXX","req":"XXX"}
+sys.aptget.run=function(input)
+end function
+sys.build={"name":"build","usage":"XXX","req":"XXX"}
+sys.build.run=function(input)
+end function
+sys.cat={"name":"cat","usage":"XXX","req":"XXX"}
+sys.cat.run=function(input)
+end function
+sys.cd={"name":"cd","usage":"XXX","req":"XXX"}
+sys.cd.run=function(input)
+end function
+sys.chgrp={"name":"chgrp","usage":"XXX","req":"XXX"}
+sys.chgrp.run=function(input)
+end function
+sys.chmod={"name":"chmod","usage":"XXX","req":"XXX"}
+sys.chmod.run=function(input)
+end function
+sys.chown={"name":"chown","usage":"XXX","req":"XXX"}
+sys.chown.run=function(input)
+end function
+sys.cp={"name":"cp","usage":"XXX","req":"XXX"}
+sys.cp.run=function(input)
+end function
+sys.ftp={"name":"ftp","usage":"XXX","req":"XXX"}
+sys.ftp.run=function(input)
+end function
+sys.groupadd={"name":"groupadd","usage":"XXX","req":"XXX"}
+sys.groupadd.run=function(input)
+end function
+sys.groupdel={"name":"groupdel","usage":"XXX","req":"XXX"}
+sys.groupdel.run=function(input)
+end function
+sys.groups={"name":"groups","usage":"XXX","req":"XXX"}
+sys.groups.run=function(input)
+end function
+sys.ifconfig={"name":"ifconfig","usage":"XXX","req":"XXX"}
+sys.ifconfig.run=function(input)
+end function
+sys.iwconfig={"name":"iwconfig","usage":"XXX","req":"XXX"}
+sys.iwconfig.run=function(input)
+end function
+sys.iwlist={"name":"iwlist","usage":"XXX","req":"XXX"}
+sys.iwlist.run=function(input)
+end function
+sys.kill={"name":"kill","usage":"XXX","req":"XXX"}
+sys.kill.run=function(input)
+end function
+sys.ln={"name":"ln","usage":"XXX","req":"XXX"}
+sys.ln.run=function(input)
+end function
+sys.ls={"name":"ls","usage":"XXX","req":"XXX"}
+sys.ls.run=function(input)
+end function
+sys.man={"name":"man","usage":"XXX","req":"XXX"}
+sys.man.run=function(input)
+end function
+sys.mkdir={"name":"mkdir","usage":"XXX","req":"XXX"}
+sys.mkdir.run=function(input)
+end function
+sys.mv={"name":"mv","usage":"XXX","req":"XXX"}
+sys.mv.run=function(input)
+end function
+sys.nslookup={"name":"nslookup","usage":"XXX","req":"XXX"}
+sys.nslookup.run=function(input)
+end function
+sys.passwd={"name":"passwd","usage":"XXX","req":"XXX"}
+sys.passwd.run=function(input)
+end function
+sys.ping={"name":"ping","usage":"XXX","req":"XXX"}
+sys.ping.run=function(input)
+end function
+sys.ps={"name":"ps","usage":"XXX","req":"XXX"}
+sys.ps.run=function(input)
+end function
+sys.pwd={"name":"pwd","usage":"XXX","req":"XXX"}
+sys.pwd.run=function(input)
+end function
+sys.reboot={"name":"reboot","usage":"XXX","req":"XXX"}
+sys.reboot.run=function(input)
+end function
+sys.rm={"name":"rm","usage":"XXX","req":"XXX"}
+sys.rm.run=function(input)
+end function
+sys.rmdir={"name":"rmdir","usage":"XXX","req":"XXX"}
+sys.rmdir.run=function(input)
+end function
+sys.scp={"name":"scp","usage":"XXX","req":"XXX"}
+sys.scp.run=function(input)
+end function
+sys.ssh={"name":"ssh","usage":"XXX","req":"XXX"}
+sys.ssh.run=function(input)
+end function
+sys.sudo={"name":"sudo","usage":"XXX","req":"XXX"}
+sys.sudo.run=function(input)
+end function
+sys.touch={"name":"touch","usage":"XXX","req":"XXX"}
+sys.touch.run=function(input)
+end function
+sys.useradd={"name":"useradd","usage":"XXX","req":"XXX"}
+sys.useradd.run=function(input)
+end function
+sys.userdel={"name":"userdel","usage":"XXX","req":"XXX"}
+sys.userdel.run=function(input)
+end function
+sys.whoami={"name":"whoami","usage":"XXX","req":"XXX"}
+sys.whoami.run=function(input)
+end function
+sys.whois={"name":"whois","usage":"XXX","req":"XXX"}
+sys.whois.run=function(input)
+end function

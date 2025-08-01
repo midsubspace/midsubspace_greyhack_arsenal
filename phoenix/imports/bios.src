@@ -1,0 +1,2 @@
+print "Imported BIOS.src"
+bio={}

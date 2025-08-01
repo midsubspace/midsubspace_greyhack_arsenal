@@ -1,0 +1,17 @@
+print "Imported Core.src"
+cor={}
+//string functions taken from https://github.com/cloverrfoxx/foxlib-gh/blob/main/src/text.src
+string.color = function(hex="ffffff")
+    return "<#"+hex+">"+self+"</color>"
+end function
+string.bold=function()
+    return "<b>"+self+"</b>"
+end function
+
+string.italic=function()
+    return "<i>"+self+"</i>"
+end function
+
+string.underline=function()
+    return "<u>"+self+"</u>"
+end function

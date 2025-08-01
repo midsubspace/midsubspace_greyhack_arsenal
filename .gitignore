@@ -1,9 +1,6 @@
 /build
 /test.gs
 imports/bios.src
-nmap.gs
-run_and_done
 .vscode/tasks.json
 notes.txt
 Hacking_Tool/install_steps.txt
-/phoenix

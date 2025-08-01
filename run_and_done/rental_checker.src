@@ -1,0 +1,10 @@
+import_code("../imports/core.src")
+import_code("../imports/bios.src")
+shell=get_shell("root",A.root_pwd)
+computer=shell.host_computer
+rental_list=["216.13.86.17","79.135.165.219","203.54.142.235"]
+clear_screen
+for system in rental_list
+    print char(10)
+    print core.text("color","#ffffff")+"IPV4 Address: "+system+" - "+ whois(system)
+end for
