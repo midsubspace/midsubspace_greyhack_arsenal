@@ -17,7 +17,6 @@ bat.run=function()
         promptCurrentFolder = deviceName + ":~$"
     end if
     while true
-        print sys.aireplay
         input = user_input(active_user + "@" + promptCurrentFolder + " ", false, false, true)
         input=input.split(" ")
         if ["r","restart","reset","reload"].indexOf(input[0])!=null then;clear_screen;exit(get_shell.start_terminal);end if

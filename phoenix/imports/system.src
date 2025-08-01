@@ -25,117 +25,118 @@ end function
 sys.aireplay={"name":"aireplay","usage":"[-b bssid] [-e essid]","req":"file"}
 sys.aireplay.run=function(input)
 end function
-sys.airmon={"name":"airmon","usage":"XXX","req":"XXX"}
+sys.airmon={"name":"airmon","usage":"[start:stop] [net interface]","req":"XXX"}
 sys.airmon.run=function(input)
 end function
 sys.aptget={"name":"aptget","usage":"XXX","req":"XXX"}
 sys.aptget.run=function(input)
 end function
-sys.build={"name":"build","usage":"XXX","req":"XXX"}
+sys.build={"name":"build","usage":"[file_source_code] [path_new_program]","req":"XXX"}
 sys.build.run=function(input)
 end function
-sys.cat={"name":"cat","usage":"XXX","req":"XXX"}
+sys.cat={"name":"cat","usage":"[file]","req":"XXX"}
 sys.cat.run=function(input)
 end function
 sys.cd={"name":"cd","usage":"XXX","req":"XXX"}
 sys.cd.run=function(input)
 end function
-sys.chgrp={"name":"chgrp","usage":"XXX","req":"XXX"}
+sys.chgrp={"name":"chgrp","usage":"[opt:-R] [new group] [path file/folder]","req":"XXX"}
 sys.chgrp.run=function(input)
 end function
-sys.chmod={"name":"chmod","usage":"XXX","req":"XXX"}
+sys.chmod={"name":"chmod","usage":"[opt:-R] [u,g,o+wrx] [path file/folder]","req":"XXX"}
 sys.chmod.run=function(input)
 end function
-sys.chown={"name":"chown","usage":"XXX","req":"XXX"}
+sys.chown={"name":"chown","usage":"[opt:-R] [owner] [path file/folder]","req":"XXX"}
 sys.chown.run=function(input)
 end function
-sys.cp={"name":"cp","usage":"XXX","req":"XXX"}
+sys.cp={"name":"cp","usage":"[path to file] [path to copy]","req":"XXX"}
 sys.cp.run=function(input)
 end function
-sys.ftp={"name":"ftp","usage":"XXX","req":"XXX"}
+sys.ftp={"name":"ftp","usage":"[user@password] [ip address]","req":"XXX"}
 sys.ftp.run=function(input)
 end function
-sys.groupadd={"name":"groupadd","usage":"XXX","req":"XXX"}
+sys.groupadd={"name":"groupadd","usage":"[user] [new group]","req":"XXX"}
 sys.groupadd.run=function(input)
 end function
-sys.groupdel={"name":"groupdel","usage":"XXX","req":"XXX"}
+sys.groupdel={"name":"groupdel","usage":"[user] [group]","req":"XXX"}
 sys.groupdel.run=function(input)
 end function
-sys.groups={"name":"groups","usage":"XXX","req":"XXX"}
+sys.groups={"name":"groups","usage":"[username]","req":"XXX"}
 sys.groups.run=function(input)
 end function
-sys.ifconfig={"name":"ifconfig","usage":"XXX","req":"XXX"}
+sys.ifconfig={"name":"ifconfig","usage":"[net interface] [ip address] gateway [ip address]","req":"XXX"}
 sys.ifconfig.run=function(input)
 end function
 sys.iwconfig={"name":"iwconfig","usage":"XXX","req":"XXX"}
 sys.iwconfig.run=function(input)
 end function
-sys.iwlist={"name":"iwlist","usage":"XXX","req":"XXX"}
+sys.iwlist={"name":"iwlist","usage":"[net device]","req":"XXX"}
 sys.iwlist.run=function(input)
 end function
-sys.kill={"name":"kill","usage":"XXX","req":"XXX"}
+sys.kill={"name":"kill","usage":"[PID]","req":"XXX"}
 sys.kill.run=function(input)
 end function
-sys.ln={"name":"ln","usage":"XXX","req":"XXX"}
+sys.ln={"name":"ln","usage":"[path file] [path to link]","req":"XXX"}
 sys.ln.run=function(input)
 end function
-sys.ls={"name":"ls","usage":"XXX","req":"XXX"}
+sys.ls={"name":"ls","usage":"[opt:-l, -a, -la] [opt: path]","req":"XXX"}
 sys.ls.run=function(input)
 end function
-sys.man={"name":"man","usage":"XXX","req":"XXX"}
+sys.man={"name":"man","usage":"[command]","req":"XXX"}
 sys.man.run=function(input)
+    print "Usage".bold+": "+sys[input[0]].name.bold+" "+sys[input[0]].usage.bold
 end function
-sys.mkdir={"name":"mkdir","usage":"XXX","req":"XXX"}
+sys.mkdir={"name":"mkdir","usage":"[path to new folder]","req":"XXX"}
 sys.mkdir.run=function(input)
 end function
-sys.mv={"name":"mv","usage":"XXX","req":"XXX"}
+sys.mv={"name":"mv","usage":"[path to file] [path to new folder]","req":"XXX"}
 sys.mv.run=function(input)
 end function
-sys.nslookup={"name":"nslookup","usage":"XXX","req":"XXX"}
+sys.nslookup={"name":"nslookup","usage":"[web address]","req":"XXX"}
 sys.nslookup.run=function(input)
 end function
-sys.passwd={"name":"passwd","usage":"XXX","req":"XXX"}
+sys.passwd={"name":"passwd","usage":"[username]","req":"XXX"}
 sys.passwd.run=function(input)
 end function
-sys.ping={"name":"ping","usage":"XXX","req":"XXX"}
+sys.ping={"name":"ping","usage":"[ip address]","req":"XXX"}
 sys.ping.run=function(input)
 end function
-sys.ps={"name":"ps","usage":"XXX","req":"XXX"}
+sys.ps={"name":"ps","usage":"ps","req":"XXX"}
 sys.ps.run=function(input)
 end function
-sys.pwd={"name":"pwd","usage":"XXX","req":"XXX"}
+sys.pwd={"name":"pwd","usage":"pwd","req":"XXX"}
 sys.pwd.run=function(input)
 end function
-sys.reboot={"name":"reboot","usage":"XXX","req":"XXX"}
+sys.reboot={"name":"reboot","usage":"[-sm]","req":"XXX"}
 sys.reboot.run=function(input)
 end function
-sys.rm={"name":"rm","usage":"XXX","req":"XXX"}
+sys.rm={"name":"rm","usage":"[file]","req":"XXX"}
 sys.rm.run=function(input)
 end function
 sys.rmdir={"name":"rmdir","usage":"XXX","req":"XXX"}
 sys.rmdir.run=function(input)
 end function
-sys.scp={"name":"scp","usage":"XXX","req":"XXX"}
+sys.scp={"name":"scp","usage":"-d [path to source file/folder] [path to destination file/folder] or -u [path to source file/folder] [path to destination file/folder]","req":"XXX"}
 sys.scp.run=function(input)
 end function
-sys.ssh={"name":"ssh","usage":"XXX","req":"XXX"}
+sys.ssh={"name":"ssh","usage":"[user@password] [ip address] [(opt) port]","req":"XXX"}
 sys.ssh.run=function(input)
 end function
-sys.sudo={"name":"sudo","usage":"XXX","req":"XXX"}
+sys.sudo={"name":"sudo","usage":"[opt:-s] [command] or -u [username]","req":"XXX"}
 sys.sudo.run=function(input)
 end function
-sys.touch={"name":"touch","usage":"XXX","req":"XXX"}
+sys.touch={"name":"touch","usage":"[path_new_file]","req":"XXX"}
 sys.touch.run=function(input)
 end function
-sys.useradd={"name":"useradd","usage":"XXX","req":"XXX"}
+sys.useradd={"name":"useradd","usage":"[new username]","req":"XXX"}
 sys.useradd.run=function(input)
 end function
-sys.userdel={"name":"userdel","usage":"XXX","req":"XXX"}
+sys.userdel={"name":"userdel","usage":"[opt:-r] [username]","req":"XXX"}
 sys.userdel.run=function(input)
 end function
-sys.whoami={"name":"whoami","usage":"XXX","req":"XXX"}
+sys.whoami={"name":"whoami","usage":"whoami","req":"XXX"}
 sys.whoami.run=function(input)
 end function
-sys.whois={"name":"whois","usage":"XXX","req":"XXX"}
+sys.whois={"name":"whois","usage":"[public IP address]","req":"XXX"}
 sys.whois.run=function(input)
 end function
