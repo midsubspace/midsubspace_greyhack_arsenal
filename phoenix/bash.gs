@@ -6,25 +6,31 @@ import_code("/bin/programs.src") // override=imports/custom.src
 print "Started B.A.S.H"
 
 
-bat={}
+bat={"current_object":get_shell,"cd":0,"path":current_path}
 
 bat.run=function()
-    deviceName = get_shell.host_computer.get_name
-    promptCurrentFolder = deviceName + current_path + "$"
+    deviceName = bat.current_object.host_computer.get_name
+    promptCurrentFolder = deviceName + bat.path + "$"
     if (active_user == "root") then
-        promptCurrentFolder = deviceName + ":" + current_path + "#"
-    else if (home_dir == current_path) then
+        promptCurrentFolder = deviceName + ":" + bat.path + "#"
+    else if (home_dir == bat.path) then
         promptCurrentFolder = deviceName + ":~$"
     end if
     while true
-        input = user_input(active_user + "@" + promptCurrentFolder + " ", false, false, true)
-        input=input.split(" ")
-        if ["r","restart","reset","reload"].indexOf(input[0])!=null then;clear_screen;exit(get_shell.start_terminal);end if
-        if input[0]=="crash" then print crash
-        if input[0]=="clear" then clear_screen
+        params = user_input(active_user + "@" + promptCurrentFolder + " ", false, false, true)
+        params=params.split(" ")
+        if ["r","restart","reset","reload"].indexOf(params[0])!=null then;clear_screen;exit(get_shell.start_terminal);end if
+        if params[0]=="crash" then print crash
+        if params[0]=="clear" then clear_screen
+        if params[0]=="CodeEditor.exe" then 
+            if params.len==3 then
+                shell=cor.req("shell",bat.current_object)
+                shell.launch("/usr/bin/"+params.pull,params[0]+" "+params[1])
+            end if
+        end if
         for app in sys
-            if input[0]==app["key"] then 
-            sys[input.pull].run(input)
+            if params[0]==app["key"] then 
+            sys[params.pull].run(params)
             end if
         end for
     end while

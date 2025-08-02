@@ -15,3 +15,105 @@ end function
 string.underline=function()
     return "<u>"+self+"</u>"
 end function
+
+cor.crypto=function()
+    crypto=include_lib("/lib/crypto.so")
+    if typeof(crypto)!="cryptoLib" then
+        print "Crypto.so Not Found".color(ffff00)
+        A.bat.run
+    else
+        return(crypto)
+    end if
+end function
+
+cor.meta=function()
+    meta=include_lib("/lib/metaxploit.so")
+    if typeof(meta)!="MetaxploitLib" then
+        print "Metaxploit.so Not Found".color(ffff00)
+        A.bat.run
+    else
+        return(meta)
+    end if
+end function
+
+cor.apt=function()
+    apt=include_lib("/lib/aptclient.so")
+    if typeof(cor)!="aptclientLib" then
+        print "Aptclient.so Not Found".color(ffff00)
+        A.bat.run
+    else
+        return(cor)
+    end if
+end function
+cor.req=function(need,object)
+    if need=="shell" then
+        if typeof(object)=="shell" then
+            return object
+        else
+            print "Must have Shell Object! ".color(ffff00)+char(10)+"You Have A "+typeof(object).color(ffff00)
+            A.bat.run
+        end if
+    else if need=="computer" then
+        if typeof(object)=="shell" then
+            object=object.host_computer
+            return object
+        else if typeof(object)=="computer" then
+            return object
+        else if typeof(object)=="file" then
+            print "Must have Computer Object! ".color(ffff00)+char(10)+"You Have A "+typeof(object).color(ffff00)
+            A.bat.run
+        end if
+    else if need=="file" then
+        if object=="shell" or object=="computer" or object=="file" then
+            return object
+        else
+            print "Must have File Object! ".color(ffff00)+char(10)+"You Have A "+typeof(object).color(ffff00)
+            A.bat.run
+        end if
+    end if
+end function
+
+cor.format=function(text, fillLastRow=false)
+    //replace escaped <, >, \, and spaces's so they won't be considered as tags
+    text = text.replace("\\\\",char(20000)).replace("\\<",char(20001)).replace("\\>",char(20002)).replace("\\ ",char(20003)).replace("\\n",char(10))
+    text = text.replace("<b>","<b><mspace=9.9>").replace("</b>","</mspace></b>")
+    origList = text.split(" ")
+    
+    for e in origList
+        if e.indexOf(char(10)) isa number then
+            sp = e.split(char(10))
+            origList[__e_idx] = sp[0]
+            origList.insert(__e_idx+1,[char(10),sp[1]].join(""))
+            __e_idx = __e_idx + 1
+        end if
+    end for
+
+    while true
+        start = text.indexOf("<")
+        if typeof(start) == "null" then break
+        finish = text.indexOf(">",start)
+        if typeof(finish) == "null" then break
+        text = [text[:start], text[finish+1:]].join("")
+    end while
+    
+    text = format_columns(text)
+    lines = text.split(char(10))
+    if fillLastRow then text = [text," "*(lines[0].len-lines[-1].len-1)].join("") // add spaces to the last row
+    newList = text.split(" ")
+
+    i = 0
+    for item in newList
+        if item != "" then
+            newList[__item_idx] = ""
+            while i < origList.len and origList[i] == ""
+                i = i + 1
+            end while
+        else
+            continue
+        end if
+        newList[__item_idx] = origList[i]
+        i = i + 1
+    end for
+
+    return newList.join(" ").replace(char(20000),"\").replace(char(20001),"<").replace(char(20002),">").replace(char(20003)," ")
+end function
