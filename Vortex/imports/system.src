@@ -908,7 +908,29 @@ sys.scp={"name":"scp","usage":"-d [path to source file/folder] [path to destinat
 sys.scp.run=function(params)//TODO Needs Other things first
 end function
 sys.ssh={"name":"ssh","usage":"[user@password] [ip address] [(opt) port]","req":"XXX"}
-sys.ssh.run=function(params)//TODO Needs Other things first
+sys.ssh.run=function(params)//TODO Needs testing
+    creds=params[0]
+    ip=params[1]
+    port=22
+    if params.len==3 then port=params[2].to_int
+    user=creds.split("@")[0]
+    pass=creds.split("@")[1]
+    shell=cor.req("shell",bat.cur_obj).connect_service(ip,port,user,pass,"ssh")
+    if typeof(shell) then 
+        bat.cur_obj=shell
+        usr=core.user(bat.cur_obj)
+        if usr=="root" then
+            bat.path="/root"
+        else if usr=="guest" then
+            bat.path="/home/guest"
+        else
+            bat.path="/home/"+usr
+        end if
+        bat.run
+    else
+        print "ssh: Error Getting Shell:"+shell
+        bat.run
+    end if
 end function
 sys.sudo={"name":"sudo","usage":"[opt:-s] [command] or -u [username]","req":"XXX"}
 sys.sudo.run=function(params)//TODO Needs Other things first

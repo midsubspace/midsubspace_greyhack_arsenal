@@ -11,7 +11,7 @@ bat={"cur_obj":get_shell,"cd":0,"path":current_path}
 bat.run=function()
     deviceName = bat.cur_obj.host_computer.get_name
     promptCurrentFolder = deviceName + bat.path + "$"
-    if (active_user == "root") then
+    if (cor.user(bat.cur_obj) == "root") then
         promptCurrentFolder = deviceName + ":" + bat.path + "#"
     else if (home_dir == bat.path) then
         promptCurrentFolder = deviceName + ":~$"
