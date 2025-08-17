@@ -6,10 +6,10 @@ import_code("/bin/programs.src") // override=imports/custom.src
 print "Started B.A.S.H"
 
 
-bat={"current_object":get_shell,"cd":0,"path":current_path}
+bat={"cur_obj":get_shell,"cd":0,"path":current_path}
 
 bat.run=function()
-    deviceName = bat.current_object.host_computer.get_name
+    deviceName = bat.cur_obj.host_computer.get_name
     promptCurrentFolder = deviceName + bat.path + "$"
     if (active_user == "root") then
         promptCurrentFolder = deviceName + ":" + bat.path + "#"
@@ -24,7 +24,7 @@ bat.run=function()
         if params[0]=="clear" then clear_screen
         if params[0]=="CodeEditor.exe" then 
             if params.len==3 then
-                shell=cor.req("shell",bat.current_object)
+                shell=cor.req("shell",bat.cur_obj)
                 shell.launch("/usr/bin/"+params.pull,params[0]+" "+params[1])
             end if
         end if

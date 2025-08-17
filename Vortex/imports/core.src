@@ -117,3 +117,36 @@ cor.format=function(text, fillLastRow=false)
 
     return newList.join(" ").replace(char(20000),"\").replace(char(20001),"<").replace(char(20002),">").replace(char(20003)," ")
 end function
+
+cor.user=function(object)
+    if typeof(object)=="shell" then
+        if not object.host_computer.File("/home") then return "guest"
+        if object.host_computer.File("/root").has_permission("w") then return "root"
+        for user in object.host_computer.File("/home").get_folders
+            if user.has_permission("w") and user.name!="guest" then return(user.name)
+        end for
+        return "guest"
+    else if typeof(object)=="computer" then
+        if not object.File("/home") then return "guest"
+        if object.File("/root").has_permission("w") then return "root"
+        for user in object.File("/home").get_folders
+            if user.has_permission("w") and user.name!="guest" then return user.name
+        end for
+        return "guest"
+    else if typeof(object)=="file" then
+        while object.name!="/"
+            object=object.parent
+        end while
+        for folder in object.get_folders
+            if folder.name=="/root" and folder.has_permission("w") then return "root"
+        end for
+        for folder in object.get_folders
+            if folder.name=="/home" then
+                for user in folder.get_folders
+                    if user.has_permission("w") and user.name!="guest" then return user.name
+                end for
+            end if
+        end for
+        return "guest"
+    end if
+end function
