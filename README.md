@@ -7,4 +7,8 @@ I am not responsible for any virtual arrests and unexpected reboots nor unexpect
 
 Hacktool is for EXPERIMENTAL BUILD ONLY
 
+Vortex is the complete overall from the ground up of Hacking_tool
+
+Roadmap and current Progress can be found at https://trello.com/b/KEpoMyKb/vortex
+
 <img width="500" height="500" alt="image" src="https://github.com/user-attachments/assets/967c9eb9-a516-49bd-877d-9b36474cdfeb" />
