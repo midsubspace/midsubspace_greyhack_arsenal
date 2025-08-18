@@ -6,8 +6,8 @@ import_code("/bin/programs.src") // override=imports/custom.src
 
 
 bat={"cur_obj":get_shell,"cd":0,"path":current_path,"version":"Vortex Concept Build"}
-bat.id="BX6114GT00000000007799910697009152"
-bat.build_date="2025-08-17 21:02:04"
+bat.id="UD46MCJ6726849135050752"
+bat.build_date="2025-08-18 17:34:38"
 bat.run=function()
     deviceName = bat.cur_obj.host_computer.get_name
     promptCurrentFolder = deviceName + bat.path + "$"

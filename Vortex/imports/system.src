@@ -2,60 +2,63 @@ print "Imported System.src"
 
 sys={}
 
-sys.aircrack={"name":"aircrack","usage":"[file cap]","req":"file"}
+sys.aircrack={"name":"aircrack","usage":"[full path to ""file.cap""]]","req":"file"}
 sys.aircrack.run=function(params) //TODO Needs Testing
     crypto=cor.crypto
     if params.len!=1 then
         sys.man.run(["aircrack"])
     end if
     file=bat.cur_obj.host_computer.File(params[0])
-    if not file or not file.is_binary or not file.has_permission("r") then ;print "Aircrack: Can't Process File:"+params[0]+":"+typeof(file).color("ffff00");return;end if
+    if ((not file) or (not file.is_binary or not file.has_permission("r"))) then ;print "Aircrack: Can't Process File:"+params[0]+":"+typeof(file);bat.run;end if
     key=crypto.aircrack(file.path)
-    if key then
-        print "Found Key:"+key.color(ffffff)
-        return
+    if typeof(key)=="string" then
+        print "Found Key:"+ key
+        bat.run
     else
-        print "Aircrack: Unable to get key".color("ffff00")
-        return
+        print "Aircrack: Unable to get key"
+        print typeof(key)
+        print key
+        bat.run
     end if
 end function
-sys.aireplay={"name":"aireplay","usage":"[-b bssid] [-e essid]","req":"file"}
+sys.aireplay={"name":"aireplay","usage":"-b ""bssid"" -e ""essid"" [opt -p ""power""]","req":"file"}
 sys.aireplay.run=function(params) //TODO Needs Testing
+    if params.len!=4 and params.len!=6 then sys.man.run(["aireplay"])
     crypto=cor.crypto
     bssid=params[1]
     essid=params[3]
-    result=crypto.aireplay(params[1],params[3])
-    if typeof(result=="string") then 
-        print "Aireplay: "+result.color("ffff00")
-        return
+    power=null
+    if params.len>4 then power=params[5]
+    if power!=null then 
+        potentialAcks = 300000 / (power.to_int + 15)
+        result=crypto.aireplay(params[1],params[3],potentialAcks)
+    else
+        result=crypto.aireplay(params[1],params[3])
+    end if
+    if typeof(result=="string") and result!=null then 
+        print "Aireplay: "+result
+        bat.run
+    else
+        print "Captured Packets Can Now Do Aircrack"
+        bat.run
     end if
 end function
 sys.airmon={"name":"airmon","usage":"[start:stop] [net interface]","req":"XXX"}
 sys.airmon.run=function(params) //TODO Needs Testing
-    crypto=cor.crypto
-    computer=cor.req("computer",bat.cur_obj)
-    output="Interface Chipset Monitor_Mode"+char(10)
-    if params.len==0 then
-        print cor.format(ouput+computer.network_devices)
-        bat.run
-    end if
-    option=params[0]
-    device=params[1]
-    if option!="start" and option!="stop" then
-        sys.man.run(["airmon"])
-        bat.run
-    end if
-    ouput=crypto.airmon(option,device)
-    if not ouput then
-        print "Airmon: "+device+" not found".color("ffff00")
-        bat.run
-    end if
-    if typeof(output)=="string" then
-                print "Airmon: "+string.color("ffff00")
-        bat.run
-    end if
-    print cor.format(output)+computer.network_devices
-    return
+    cryptools = cor.crypto
+    if not cryptools then ;print("Error: Missing crypto library");bat.run;end if
+    if params.len > 0 and (params.len != 2 or params[0] == "-h" or params[0] == "--help") then sys.man.run(["airmon"])
+    computer = cor.req("computer",bat.cur_obj)
+    formatOutput = "Interface Chipset Monitor_Mode\n"
+    if params.len == 0 then	;print(format_columns(formatOutput + computer.network_devices));bat.run;end if
+    option = params[0]
+    device = params[1]
+    if option != "start" and option != "stop" then sys.man.run(["airmon"])
+    output = cryptools.airmon(option, device)
+    if not output then print("airmon: " + device + " not found")
+    if typeof(output) == "string" then print(output)
+    print(format_columns(formatOutput + computer.network_devices))
+    bat.run
 end function
 sys.aptget={"name":"aptget","usage":"XXX","req":"XXX"}
 sys.aptget.run=function(params) //TODO Needs Testing
@@ -804,9 +807,9 @@ sys.iwconfig.run=function(params)//TODO needs testing
     status = computer.connect_wifi(params[0], bssid, essid, password)
     if typeof(status) == "string" then print(status)
 end function
-sys.iwlist={"name":"iwlist","usage":"[net device]","req":"XXX"}
+sys.iwlist={"name":"iwlist","usage":"[net device]"+char(10)+"Example: iwlist wlan0","req":"XXX"}
 sys.iwlist.run=function(params)//TODO needs testing
-    if params.len != 1 or params[0] == "-h" or params[0] == "--help" then sys.man.run["iwlist"]
+    if params.len!=1 then sys.man.run(["iwlist"])
     computer = cor.req("computer",bat.cur_obj)
     devices = computer.network_devices
     if devices == null or devices.indexOf(params[0]) == null then ;print("iwlist: Network device not found");bat.run;end if
