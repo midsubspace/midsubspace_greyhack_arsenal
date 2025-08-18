@@ -123,7 +123,7 @@ cor.user=function(object)
         if not object.host_computer.File("/home") then return "guest"
         if object.host_computer.File("/root").has_permission("w") then return "root"
         for user in object.host_computer.File("/home").get_folders
-            if user.has_permission("w") and user.name!="guest" then return(user.name)
+            if user.has_permission("w") and user.name!="guest" then return user.name
         end for
         return "guest"
     else if typeof(object)=="computer" then
