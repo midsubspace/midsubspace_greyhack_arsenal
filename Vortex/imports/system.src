@@ -3,7 +3,7 @@ print "Imported System.src"
 sys={}
 
 sys.aircrack={"name":"aircrack","usage":"[full path to ""file.cap""]]","req":"file"}
-sys.aircrack.run=function(params) //TODO Needs Testing
+sys.aircrack.run=function(params)
     crypto=cor.crypto
     if params.len!=1 then
         sys.man.run(["aircrack"])
@@ -22,7 +22,7 @@ sys.aircrack.run=function(params) //TODO Needs Testing
     end if
 end function
 sys.aireplay={"name":"aireplay","usage":"-b ""bssid"" -e ""essid"" [opt -p ""power""]","req":"file"}
-sys.aireplay.run=function(params) //TODO Needs Testing
+sys.aireplay.run=function(params)
     if params.len!=4 and params.len!=6 then sys.man.run(["aireplay"])
     crypto=cor.crypto
     bssid=params[1]
@@ -44,7 +44,7 @@ sys.aireplay.run=function(params) //TODO Needs Testing
     end if
 end function
 sys.airmon={"name":"airmon","usage":"[start:stop] [net interface]","req":"XXX"}
-sys.airmon.run=function(params) //TODO Needs Testing
+sys.airmon.run=function(params)
     cryptools = cor.crypto
     if not cryptools then ;print("Error: Missing crypto library");bat.run;end if
     if params.len > 0 and (params.len != 2 or params[0] == "-h" or params[0] == "--help") then sys.man.run(["airmon"])
@@ -60,9 +60,10 @@ sys.airmon.run=function(params) //TODO Needs Testing
     print(format_columns(formatOutput + computer.network_devices))
     bat.run
 end function
-sys.aptget={"name":"aptget","usage":"XXX","req":"XXX"}
-sys.aptget.run=function(params) //TODO Needs Testing
+sys["apt-get"]={"name":"apt-get","usage":"Usage: apt-get install [program_name]".bold+char(10)+"Usage: apt-get search [program_name]".bold+char(10)+"Usage: apt-get show [repo_address]".bold+char(10)+"Usage: apt-get addrepo [repo_address]".bold+char(10)+"Usage: apt-get delrepo [repo_address]".bold+char(10)+"Usage: apt-get update".bold+char(10)+"Usage: apt-get upgrade".bold,"req":"XXX"}
+sys["apt-get"].run=function(params) //TODO Needs Testing
     aptclient=cor.apt
+    bat.run
     PendingUpdates=function(folderPath)
         pendingUpdate=[]
         targetFolder=bat.cur_obj.File(folderPath)
@@ -80,36 +81,42 @@ sys.aptget.run=function(params) //TODO Needs Testing
         print "Updaing package lists..."
         output=aptclient.update
         if output then print output
+        bat.run
     else if action=="install" then
         print "Reading package lists..."
-        if params.len<2 then;sys.man.run(["aptget"]);A.bat.run;end if
+        if params.len<2 then;sys.man.run(["apt-get"]);A.bat.run;end if
         print "Downloading "+params[1]
         customPath=""
         if params.len==3 then customPath=params[2]
         output=aptclient.install(params[1],customPath)
         if output==true then ;print params[1]+" installed";A.bat.run;end if
         print output
+        bat.run
     else if action=="search" then
         print aptclient.search(params[1])
+        bat.run
     else if action=="show" then
-        if params.len!=2 then;sys.man.run(["aptget"]);A.bat.run;end if
+        if params.len!=2 then;sys.man.run(["apt-get"]);A.bat.run;end if
         print aptclient.show(params[1])
+        bat.run
     else if action=="addrepo" then
-        if params.len<2 or params.len>3 then ;sys.man.run(["aptget"]);A.bat.run;end if
+        if params.len<2 or params.len>3 then ;sys.man.run(["apt-get"]);A.bat.run;end if
         port=1542
         if params.len==3 then port=params[2]
         output=aptclient.add_repo(params[1],port)
-        if output then;print output;sys.man.run(["aptget"]);A.bat.run;end if
-        print "Repo "+params[1]+" added succesfully. "+char(10) +"Launch aptget with the update option to apply the changes"
+        if output then;print output;sys.man.run(["apt-get"]);A.bat.run;end if
+        print "Repo "+params[1]+" added succesfully. "+char(10) +"Launch apt-get with the update option to apply the changes"
+        bat.run
     else if action=="delrepo" then
-        if params.len!=2 then;sys.man.run(["aptget"]);A.bat.run;end if
-        output=aptclient.del_repo(paramsp[1])
-        if output then;print output;sys.man.run(["aptget"]);A.bat.run;end if
-        print "Repo "+params[1]+" removed succesfully"+char(10)+"Launch aptget with the update option to apply the changes"
+        if params.len!=2 then;sys.man.run(["apt-get"]);A.bat.run;end if
+        output=aptclient.del_repo(params[1])
+        if output then;print output;sys.man.run(["apt-get"]);A.bat.run;end if
+        print "Repo "+params[1]+" removed succesfully"+char(10)+"Launch apt-get with the update option to apply the changes"
+        bat.run
     else if action=="upgrade" then
         if params.len==1 then
             pendingpackages= PendingUpdates("/lib")+PendingUpdating("/bin")
-            if pendingpackages.len==0 then;print "No updated needed";sys.man.run(["aptget"]);A.bat.run;end if
+            if pendingpackages.len==0 then;print "No updated needed";sys.man.run(["apt-get"]);A.bat.run;end if
             print "The following packages will be updated:"
             pkgs=" "
             for itemPackage in pendingpackages
@@ -129,28 +136,30 @@ sys.aptget.run=function(params) //TODO Needs Testing
                 end for
                 print counter+" packages updated"
             else
-                print "aborted";sys.man.run(["aptget"]);A.bat.run
+                print "aborted";sys.man.run(["apt-get"]);A.bat.run
             end if
+            bat.run
         else if params.len == 2 then
             output = aptclient.check_upgrade("/lib/" + params[1])
             if typeof(output) == "string" then output = aptclient.check_upgrade("/bin/" + params[1])
-            if not output then print("No updates needed");sys.man.run(["aptget"]);A.bat.run;end if
+            if not output then print("No updates needed");sys.man.run(["apt-get"]);A.bat.run;end if
             if output == true then
                 print("The following package will be updated:"+char(10) + params[1])
                 option = user_input(char(10)+"Do you want to continue?(y/n): ")
                 if option == "y" or option == "yes" then
                     output = aptclient.install(params[1])
-                    if output == true then ;print (params[1] + " installed.");sys.man.run(["aptget"]);A.bat.run;end if
+                    if output == true then ;print (params[1] + " installed.");sys.man.run(["apt-get"]);A.bat.run;end if
                     print(output)				
                 else 
-                    print("aborted");sys.man.run(["aptget"]);A.bat.run
+                    print("aborted");sys.man.run(["apt-get"]);A.bat.run
                 end if
             else
-                print output;sys.man.run(["aptget"]);A.bat.run
+                print output;sys.man.run(["apt-get"]);A.bat.run
         end if
     else
-        sys.man.run(["aptget"]);A.bat.run
+        sys.man.run(["apt-get"])
     end if
+    bat.run
 end function
 sys.build={"name":"build","usage":"[file_source_code] [path_new_program]","req":"shell"}
 sys.build.run=function(params) //TODO Needs Testing
@@ -181,7 +190,6 @@ sys.cat.run=function(params)
     if params.len != 1 or params[0] == "-h" or params[0] == "--help" then ;sys.man.run(["cat"]);A.bat.run;end if
     pathFile = params[0]
     file = cor.req("computer",bat.cur_obj).File(pathFile)
-    print bat.path
     if file ==null then file=cor.req("computer",bat.cur_obj).File(bat.path+"/"+pathFile)
     if file == null then ;print("cat: file not found: "+pathFile);bat.run;end if
     if file.is_binary then ;print("cat: can't open " + file.path + ". Binary file");bat.run;end if
@@ -762,7 +770,7 @@ sys.groups.run=function(params)//TODO needs testing
     print output
 end function
 sys.ifconfig={"name":"ifconfig","usage":"[net interface] [ip address] gateway [ip address]","req":"XXX"}
-sys.ifconfig.run=function(params)//TODO needs testing
+sys.ifconfig.run=function(params)
     computer = cor.req("computer",bat.cur_obj)
     if (params.len == 0) then
         router = get_router    
@@ -796,11 +804,12 @@ sys.ifconfig.run=function(params)//TODO needs testing
         if output.len > 0 then print(output)
     end if
 end function
-sys.iwconfig={"name":"iwconfig","usage":"XXX","req":"XXX"}
-sys.iwconfig.run=function(params)//TODO needs testing
+sys.iwconfig={"name":"iwconfig","usage":"Usage: iwconfig [net device] [bssid] [essid name] [pass key]".bold+char(10)+"Example: iwconfig wlan0 00:11:22:33:44 mynetwork mypass","req":"XXX"}
+sys.iwconfig.run=function(params)
+    if params.len != 4 or params[0] == "-h" or params[0] == "--help" then sys.man.run(["iwconfig"])
     computer = cor.req("computer",bat.cur_obj)
     devices = computer.network_devices
-    if devices == null or devices.indexOf(params[0]) == null then ;print;("iwconfig: Network device not found");bat.run;end if
+    if devices == null or devices.indexOf(params[0]) == null then ;print("iwconfig: Network device not found");bat.run;end if
     bssid = params[1]
     essid = params[2]
     password = params[3]
@@ -808,7 +817,7 @@ sys.iwconfig.run=function(params)//TODO needs testing
     if typeof(status) == "string" then print(status)
 end function
 sys.iwlist={"name":"iwlist","usage":"[net device]"+char(10)+"Example: iwlist wlan0","req":"XXX"}
-sys.iwlist.run=function(params)//TODO needs testing
+sys.iwlist.run=function(params)
     if params.len!=1 then sys.man.run(["iwlist"])
     computer = cor.req("computer",bat.cur_obj)
     devices = computer.network_devices
@@ -837,7 +846,7 @@ sys.ln={"name":"ln","usage":"[path file] [path to link]","req":"XXX"}
 sys.ln.run=function(params)//TODO needs testing
 end function
 sys.ls={"name":"ls","usage":"[opt:-l, -a, -la] [opt: path]","req":"XXX"}
-sys.ls.run=function(params)//TODO needs testing
+sys.ls.run=function(params)//TODO Needs Other things first
 end function
 sys.man={"name":"man","usage":"[command]","req":"XXX"}
 sys.man.run=function(params)
@@ -898,7 +907,7 @@ sys.ping.run=function(params)//TODO needs testing
 end function
 sys.ps={"name":"ps","usage":"ps","req":"XXX"}
 sys.ps.run=function(params)//TODO needs testing
-    output=cor.req("computer",bat.cur_obj).show_proces
+    output=cor.req("computer",bat.cur_obj).show_procs
     print cor.format(output)
 end function
 sys.pwd={"name":"pwd","usage":"pwd","req":"XXX"}

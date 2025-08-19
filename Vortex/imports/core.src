@@ -19,7 +19,7 @@ end function
 cor.crypto=function()
     crypto=include_lib("/lib/crypto.so")
     if typeof(crypto)!="cryptoLib" then
-        print "Crypto.so Not Found".color(ffff00)
+        print "Crypto.so Not Found".color("ffff00")
         A.bat.run
     else
         return(crypto)
@@ -29,7 +29,7 @@ end function
 cor.meta=function()
     meta=include_lib("/lib/metaxploit.so")
     if typeof(meta)!="MetaxploitLib" then
-        print "Metaxploit.so Not Found".color(ffff00)
+        print "Metaxploit.so Not Found".color("ffff00")
         A.bat.run
     else
         return(meta)
@@ -38,11 +38,11 @@ end function
 
 cor.apt=function()
     apt=include_lib("/lib/aptclient.so")
-    if typeof(cor)!="aptclientLib" then
-        print "Aptclient.so Not Found".color(ffff00)
+    if typeof(apt)!="aptclientLib" then
+        print "Aptclient.so Not Found".color("ffff00")
         A.bat.run
     else
-        return(cor)
+        return(apt)
     end if
 end function
 cor.req=function(need,object)
