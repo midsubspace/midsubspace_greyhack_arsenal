@@ -7,15 +7,12 @@ end function
 string.bold=function()
     return "<b>"+self+"</b>"
 end function
-
 string.italic=function()
     return "<i>"+self+"</i>"
 end function
-
 string.underline=function()
     return "<u>"+self+"</u>"
 end function
-
 cor.crypto=function()
     crypto=include_lib("/lib/crypto.so")
     if typeof(crypto)!="cryptoLib" then
@@ -25,7 +22,6 @@ cor.crypto=function()
         return(crypto)
     end if
 end function
-
 cor.meta=function()
     meta=include_lib("/lib/metaxploit.so")
     if typeof(meta)!="MetaxploitLib" then
@@ -35,7 +31,6 @@ cor.meta=function()
         return(meta)
     end if
 end function
-
 cor.apt=function()
     apt=include_lib("/lib/aptclient.so")
     if typeof(apt)!="aptclientLib" then
@@ -72,7 +67,6 @@ cor.req=function(need,object)
         end if
     end if
 end function
-
 cor.format=function(text, fillLastRow=false)
     //replace escaped <, >, \, and spaces's so they won't be considered as tags
     text = text.replace("\\\\",char(20000)).replace("\\<",char(20001)).replace("\\>",char(20002)).replace("\\ ",char(20003)).replace("\\n",char(10))
@@ -117,7 +111,6 @@ cor.format=function(text, fillLastRow=false)
 
     return newList.join(" ").replace(char(20000),"\").replace(char(20001),"<").replace(char(20002),">").replace(char(20003)," ")
 end function
-
 cor.user=function(object)
     if typeof(object)=="shell" then
         if not object.host_computer.File("/home") then return "guest"
@@ -149,4 +142,158 @@ cor.user=function(object)
         end for
         return "guest"
     end if
+end function
+cor.exit_err=function(message="You Fucked Up",output=null)
+    if output!=null then
+        print output
+        print message.color("ffff00")
+    else
+        print message.color("ffff00")
+    end if
+    bat.run
+end function
+cor.check_match=function(matches)
+    for m in matches
+        if m.is_folder and m.name=="/" then return matches[0]
+    end for
+    if matches.len>1 then
+        for m in matches
+            if m=="exit" then
+                print n+")"+m
+                continue
+            end if
+            folder=m.is_folder
+            binary=m.is_binary
+            if folder!=0 then
+                folder="Folder"
+            else
+                folder="File"
+            end if
+            if binary!=0 then
+                binary="Binary"
+            else 
+                binary=0
+            end if
+            if binary==0 then
+                print n+")"+m.path+":"+folder
+            else
+                print n+")"+m.path+":"+folder+":"+binary
+            end if
+            n=n+1
+        end for
+        opt=user_input("Pick#").val
+        if matches[opt]=="exit" then return null
+        return matches[opt]
+    else if matches.len==0 then
+        print "No Matches Found!".color("ffffff")
+        return null
+    else
+        return matches[0]
+    end if
+end function
+cor.find=function(object=null)
+    if typeof(object)!="file" then
+        print "Find: Must pass file object".color("ffff00")
+        bat.run
+    end if
+    temp={"files":[],"folders":[]}
+    check=function(folder)
+        folders=folder.get_folders
+        files=folder.get_files
+        for file in files
+            temp.files.push(file)
+        end for
+        for folder in folders
+            temp.folder.push(folder)
+        end for
+    end function
+    main=function(f)
+        for folder in f.get_folders
+            res=main(folder)
+            check(folder)
+            if res then return res
+        end for
+        return ""
+    end function
+    if object==null then
+        cor.exit_err("find: object passed is null")
+    end if
+    for folder in object.get_folders
+        temp.folders.push(folder)
+    end for
+    temp.folder.push(object)
+    main(object)
+    return temp
+end function
+cor.menu=function(options)
+    n=1
+    print 0+")exit"
+    for option in options
+        print n+")"+option
+        n=n+1
+    end for
+    opt=user_input("Choice> ".color("ffffff"))
+    if options.indexOf(opt)==null then
+        opt=opt.val
+        if opt==0 then
+            print "Aborted".color("ffff00")
+            bat.run
+        end if
+        return options[opt-1]
+    else
+        if opt=="exit" then
+            print "Aborted".color("ffff00")
+            bat.run
+        end if
+        return opt
+    end if
+end function
+cor.convert_time=function(endTime)
+    h = floor(endTime / 3600)
+    m = floor((endTime % 3600) / 60)
+    s = floor(endTime % 60)
+    return {"hour":h,"min":m,"sec":s}
+end function
+cor.get_date=function()
+    return {"month":current_date.split("/")[1],"day":current_date.split("/")[0].val,"year":current_date.split("/")[2].split("-")[0].trim.val,"time":current_date.split("/")[2].split("-")[1].trim}
+end function
+cor.perms=function(perms)
+        if perms==1 then
+        return perms.color("00ED03")
+    else if perms==0 then
+        return perms.color("AA0000")
+    else
+        return perms.color("FFFFFF")
+    end if
+end function
+cor.stopwatch=function(mode="start",msg="")
+    if mode=="start" then
+        A.startime=time
+    else
+        endtime=core.convert_time(time-A.startime)
+        print "It took "+endtime["hour"]+" Hour(s):"+endtime["min"]+" Min(s):"+endtime["sec"]+" Sec(s) "+msg
+    end if
+end function
+cor.watch_proc=function(name="Notepad.exe")
+    computer=core.req("computer",get_shell)
+    show_procs
+    list=computer.show_procs.split(char(10))[1:]
+    for item in list
+        parsedItem = item.split(" ")
+        if parsedItem[4]==name then return 1
+    end for
+    return 0
+end function
+cor.watch_file=function(path)
+    computer=core.req("computer",get_shell)
+    if computer.File(path)!=null then 
+        return 1
+    else
+        return 0
+    end if
+end function
+cor.test=function(msg="DEBUG SHIT")
+    if bat.debug!=1 then return
+    print msg
+    user_input("Press Enter To Continue",0,1)
 end function
