@@ -199,11 +199,45 @@ sys.cat.run=function(params)
 end function
 sys.cd={"name":"cd","usage":"XXX","req":"XXX"}
 sys.cd.run=function(params)
-    pathFile=home_dir
-    if params.len>0 then
-        pathFile=get_abs_path(params[0])
+    object=cor.req("file",bat.cur_obj)
+    temp=cor.find(object)
+    matches=[]
+    for folder in temp.folders
+        if folder.path==bat.path then matches.push(folder)
+    end for
+    folder=cor.check_match(matches)
+    if folder==null then cor.ext_err("cd: Failed to Locate:",params[0])
+    if params.len==0 then
+        if bat.usr=="root" then
+            bat.path="/root"
+            return
+        else if bat.usr=="guest" then
+            bat.path="/home/guest"
+            return
+        else
+            bat.path="/home/"+bat.usr
+            return
+        end if
+    else
+        if params[0]==".." then
+            if bat.path=="/" then bat.run
+            bat.path=folder.parent.path
+        else
+            new_folder=params[0]
+            if new_folder.split("/").len==1 then
+                matches=[]
+                for folder in temp.folders
+                    if folder.name==new_folder then matches.push(folder)
+                end for
+                folder=cor.check_match(matches)
+                if folder== null then cor.exit_err("cd: Unable to locate ",params[0])
+                bat.path=folder.path
+            else
+                bat.path=new_folder
+                bat.run
+            end if
+        end if
     end if
-    bat.path=pathFile
     bat.run
 end function
 sys.chgrp={"name":"chgrp","usage":"[opt:-R] [new group] [path file/folder]","req":"XXX"}
@@ -847,6 +881,66 @@ sys.ln.run=function(params)//TODO needs testing
 end function
 sys.ls={"name":"ls","usage":"[opt:-l, -a, -la] [opt: path]","req":"XXX"}
 sys.ls.run=function(params)//TODO Needs Other things first
+    ValidateInput = function(input)
+        return (input == "-la" or input == "-l" or input == "-a")
+    end function 
+    ParamsValid = function(params)
+        if params.len > 3 then return false 
+        for p in params                               
+            if p.indexOf("-") != null and not ValidateInput(p) then return false
+        end for                                     
+        return true                                
+    end function
+    if not ParamsValid(params) then
+        sys.man.run(["ls"])
+    else
+        computer = cor.req("computer",bat.cur_obj)
+        folderPath = current_path
+        if params and params[params.len - 1].indexOf("-") == null then
+            folderPath = params[params.len - 1]
+        end if
+        folder = computer.File(folderPath)
+        if folder == null then
+            print("ls: No such file or directory")
+            bat.run
+        else
+            if not folder.has_permission("r") then
+                print("ls: permission denied")
+                bat.run
+            else
+                showHide = 0
+                if params and params[0].indexOf("a") != null then
+                    showHide = 1
+                end if
+                showDetails = 0
+                if params and params[0].indexOf("l") != null then
+                    showDetails = 1
+                end if
+                subFiles = folder.get_folders + folder.get_files
+                output = ""
+                for subFile in subFiles
+                    nameFile = subFile.name
+                    permission = subFile.permissions
+                    owner = subFile.owner
+                    size = subFile.size
+                    group = subFile.group
+                    if showHide or nameFile.indexOf(".") != 0 then
+                        if output.len > 0 then 
+                            output = output + char(10)
+                        end if
+                        if showDetails then
+                            output = output + permission + " " + owner + " " + group + " " + size + " 00:00 " + nameFile
+                            if subFile.is_symlink then output = output + "-->" + subFile.path(true)
+                        else
+                            output = output + nameFile
+                        end if
+                    end if
+                end for
+                print(format_columns(output))
+            end if
+        end if
+    end if
+    bat.run
 end function
 sys.man={"name":"man","usage":"[command]","req":"XXX"}
 sys.man.run=function(params)

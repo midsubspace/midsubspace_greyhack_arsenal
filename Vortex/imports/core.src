@@ -40,7 +40,7 @@ cor.apt=function()
         return(apt)
     end if
 end function
-cor.req=function(need,object)
+cor.req=function(need=null,object=null)
     if need=="shell" then
         if typeof(object)=="shell" then
             return object
@@ -59,12 +59,23 @@ cor.req=function(need,object)
             A.bat.run
         end if
     else if need=="file" then
-        if object=="shell" or object=="computer" or object=="file" then
+        if typeof(object)=="shell" then
+            object=object.host_computer.File("/")
+            return object
+        else if typeof(object)=="computer" then
+            object=object.File("/")
+            return object
+        else if object=="file" then
+            while object.name!="/"
+                object=object.parent
+            end while
             return object
         else
             print "Must have File Object! ".color(ffff00)+char(10)+"You Have A "+typeof(object).color(ffff00)
             A.bat.run
         end if
+    else
+        cor.exit_err("COR.REQ FAILED DUMBASS")
     end if
 end function
 cor.format=function(text, fillLastRow=false)
@@ -153,6 +164,7 @@ cor.exit_err=function(message="You Fucked Up",output=null)
     bat.run
 end function
 cor.check_match=function(matches)
+    n=0
     for m in matches
         if m.is_folder and m.name=="/" then return matches[0]
     end for
@@ -197,14 +209,15 @@ cor.find=function(object=null)
         bat.run
     end if
     temp={"files":[],"folders":[]}
-    check=function(folder)
+    check=function(folder=null)
+        if folder==null then cor.exit_err("Fucked up check object passwed is null")
         folders=folder.get_folders
         files=folder.get_files
         for file in files
             temp.files.push(file)
         end for
         for folder in folders
-            temp.folder.push(folder)
+            temp.folders.push(folder)
         end for
     end function
     main=function(f)
@@ -221,7 +234,7 @@ cor.find=function(object=null)
     for folder in object.get_folders
         temp.folders.push(folder)
     end for
-    temp.folder.push(object)
+    temp.folders.push(object)
     main(object)
     return temp
 end function
