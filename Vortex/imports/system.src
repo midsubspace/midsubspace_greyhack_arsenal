@@ -803,10 +803,10 @@ sys.ifconfig={"name":"ifconfig","usage":"[net interface] [ip address] gateway [i
 sys.ifconfig.run=function(params)
     computer = cor.req("computer",bat.cur_obj)
     if (params.len == 0) then
-        router = get_router    
+        router = get_router(computer.public_ip)
         if computer.is_network_active then
             lip = computer.local_ip
-            pip = router.public_ip
+            pip = computer.public_ip
             gw = computer.network_gateway
             if computer.active_net_card == "WIFI" then
                 if router.local_ip != gw then
