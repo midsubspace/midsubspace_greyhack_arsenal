@@ -188,8 +188,15 @@ sys.cat={"name":"cat","usage":"[file]","req":"computer"}
 sys.cat.run=function(params)
     if params.len != 1 or params[0] == "-h" or params[0] == "--help" then ;sys.man.run(["cat"]);A.bat.run;end if
     pathFile = params[0]
-    object = cor.req("computer",bat.cur_obj)
-    file=null
+    object = cor.req("file",bat.cur_obj)
+    temp=cor.find(object)
+    matches=[]
+    for file in temp.files
+        if file.name.lower==pathFile.lower and not file.is_binary and not file.is_folder then
+            matches.push(file)
+        end if 
+    end for
+    file=cor.check_match(matches)
     if file ==null then file=cor.req("computer",bat.cur_obj).File(bat.path+"/"+pathFile)
     if file == null then ;print("cat: file not found: "+pathFile);bat.run;end if
     if file.is_binary then ;print("cat: can't open " + file.path + ". Binary file");bat.run;end if
@@ -298,7 +305,7 @@ sys.cp.run=function(params)
     destFolder = get_abs_path(params[1])
     computer = get_shell.host_computer
     file = computer.File(origFile)
-    if not file then exit("cp: can't find " + origFile)
+    if not file then cor.exit_err("cp: can't find ",origFile)
     newName = ""
     folder = computer.File(destFolder)
     if not folder then
@@ -310,7 +317,7 @@ sys.cp.run=function(params)
             destFolder = file.parent.path		
             output = file.copy(destFolder, newName)
             if output and output != 1 then print(output)
-            exit
+            bat.run
         end if	
 
         folder = computer.File(pathParent)
@@ -756,12 +763,12 @@ sys.ftp.run=function(params)//TODO needs testing
     connected = true
     port = 21
     if params.len == 3 then port = params[2].to_int
-    if typeof(port) != "number" then exit("Invalid port: " + port)
+    if typeof(port) != "number" then cor.exit_err("Invalid port: ",port)
     print("Connecting...")
     ftp_current_path = ""
     ftp_home_dir = ""
     ftp_shell = get_shell.connect_service(params[1], port, user, password, "ftp")
-    if typeof(ftp_shell) == "string" then exit(ftp_shell)
+    if typeof(ftp_shell) == "string" then cor.exit_err("ftp: ",ftp_shell)
     if ftp_shell then
         ftp_current_path = "/root"
         if user != "root" then ftp_current_path = "/home/" + user
@@ -878,7 +885,7 @@ sys.ln.run=function(params)
     if params.len > 0 and params[0] == "-s" then
         params = params[1:]
     end if
-    if params.len != 2 or params[0] == "-h" or params[0] == "--help" then exit(command_info("ln_usage"))
+    if params.len != 2 or params[0] == "-h" or params[0] == "--help" then sys.man.run(["ln"])
 
     pathFile = get_abs_path(params[0])
     pathLink = get_abs_path(params[1])
@@ -889,8 +896,8 @@ sys.ln.run=function(params)
 
     file = get_shell.host_computer.File(pathFile)
         
-    if file == null then exit("ln: file not found: "+pathFile)
-    if not file.has_permission("w") then exit("ln: permission denied")
+    if file == null then cor.exit_err("ln: file not found: ",pathFile)
+    if not file.has_permission("w") then cor.exit_err("ln: permission denied")
 
     arrayPath = pathLink.split("/")
     newName = arrayPath[arrayPath.len-1]
@@ -1020,7 +1027,7 @@ sys.passwd.run=function(params)//TODO needs testing
     if params.len!=1 then sys.man.run(["passwd"])
     inputMsg = "Changing password for user " + params[0] +char(10)+"New password:"
     inputPass = user_input(inputMsg, true)
-    output = get_shell.host_computer.change_password(params[0], inputPass)
+    output = cor.req("computer",bat.cur_obj).change_password(params[0], inputPass)
     if output == true then 
         print("password for user "+params[0]+" modified OK")
         bat.run
@@ -1064,7 +1071,16 @@ end function
 sys.rm={"name":"rm","usage":"[file]","req":"XXX"}
 sys.rm.run=function(params)
     if params.len < 1 or params.len > 2 or params[0] == "-h" or params[0] == "--help" then sys.man.run(["rm"])
-    pathFile = get_abs_path(params[0])
+    pathFile = params[0]
+    temp=cor.find(cor.req("file",bat.cur_obj))
+    matches=[]
+    for file in temp.files
+        if file.name.lower==pathFile.lower then matches.push(file)
+    end for
+    for folder in temp.folders
+        if folder.name.lower==pathFile.lower then matches.push(folder)
+    end for
+    file=cor.check_match(matches)
     isRecursive = 0
     if params[0] == "-r" then
         if params.len == 1 then sys.man.run(["rm"])
@@ -1072,7 +1088,7 @@ sys.rm.run=function(params)
         pathFile = params[1]
     end if
     file = cor.req("computer",bat.cur_obj).File(pathFile)
-    if file == null then exit("rm: file not found: "+pathFile)
+    if file == null then cor.exit_err("rm: file not found: ",pathFile)
     if not file.has_permission("w") then cor.exit_err("rm: permission denied")
     if file.is_folder == 1 and isRecursive == 0 and file.is_symlink == 0 then
         cor.exit_err("rm: " + file.name + " is a directory")
@@ -1124,10 +1140,68 @@ sys.ssh.run=function(params)
     end if
 end function
 sys.sudo={"name":"sudo","usage":"[opt:-s] [command] or -u [username]","req":"XXX"}
-sys.sudo.run=function(params)//TODO Needs Other things first
+sys.sudo.run=function(params)
+    object=cor.req("shell",bat.cur_obj)
+    cus.local_libs(object)
+    if cus.dropzone==null then cor.exit_err("sudo: ERROR With dropzone")
+    computer=object.host_computer
+    if params[0] == "-u" and params.len != 2 then sys.man.run(["sudo"])
+    if params[0].trim=="-u" then
+        if computer.File(cus.dropzone.path).has_permission("w") then
+            cus.payloads("create")
+            bat_file=cus.bat_file
+            file=bat_file.set_content("user=get_custom_object[""sudo_user""]"+char(10)+"password=get_custom_object[""sudo_password""]"+char(10)+"shell=get_shell(user,password)"+char(10)+"if typeof(shell)==""shell"" then"+char(10)+"get_custom_object[""sudo_shell""]=shell"+char(10)+"else"+char(10)+"get_custom_object[""sudo_shell""]=null"+char(10)+"end if")
+            buildResult = object.build(cus.dropzone.path+"/"+cus.payload_name+".src",cus.dropzone.path)
+            get_custom_object["sudo_user"]=params[1]
+            get_custom_object["sudo_password"]=user_input("Password: ",true)
+            object.launch(cus.dropzone.path+"/"+cus.payload_name)
+            if get_custom_object["sudo_shell"]!=null then 
+                bat.cur_obj=get_custom_object["sudo_shell"]
+                cor.objects("add",bat.cur_obj)
+                bat.usr=cor.user(bat.cur_obj)
+                if bat.usr=="root" then
+                    bat.path="/root"
+                else if bat.usr=="guest" then
+                    bat.path="/home/guest"
+                else
+                    bat.path="/home/"+bat.usr
+                end if
+                bat.run
+            else
+                cor.exit_err("sudo: incorrect username or password")
+            end if
+        else
+            bat.run
+        end if
+    else
+        if computer.File(cus.dropzone.path).has_permission("w") then
+            cus.payloads("create")
+            bat_file=cus.bat_file
+            file=bat_file.set_content("user=get_custom_object[""sudo_user""]"+char(10)+"password=get_custom_object[""sudo_password""]"+char(10)+"shell=get_shell(user,password)"+char(10)+"if typeof(shell)==""shell"" then"+char(10)+"get_custom_object[""sudo_shell""]=shell"+char(10)+"else"+char(10)+"get_custom_object[""sudo_shell""]=null"+char(10)+"end if")
+            buildResult = object.build(cus.dropzone.path+"/"+cus.payload_name+".src",cus.dropzone.path)
+            get_custom_object["sudo_user"]="root"
+            get_custom_object["sudo_password"]=user_input("Password: ",true)
+            object.launch(cus.dropzone.path+"/"+cus.payload_name)
+            if get_custom_object["sudo_shell"]!=null then 
+                bat.cur_obj=get_custom_object["sudo_shell"]
+                cor.objects("add",bat.cur_obj)
+                bat.usr=cor.user(bat.cur_obj)
+                if bat.usr=="root" then
+                    bat.path="/root"
+                else if bat.usr=="guest" then
+                    bat.path="/home/guest"
+                else
+                    bat.path="/home/"+bat.usr
+                end if
+                bat.run
+            else
+                exit_err("sudo: incorrect password")
+            end if
+        end if
+    end if
 end function
 sys.touch={"name":"touch","usage":"[path_new_file]","req":"XXX"}
-sys.touch.run=function(params)//TODO needs testing
+sys.touch.run=function(params)
     pathFile = params[0]
     pathParent = parent_path(pathFile)
     computer = cor.req("computer",bat.cur_obj)

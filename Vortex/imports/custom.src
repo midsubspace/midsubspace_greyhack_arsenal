@@ -1,3 +1,158 @@
 print "Imported Custom.src"
 
 cus={}
+cus.programs={}
+cus.local_libs=function(shell=null)//Grabs local libs from a given shell object
+    if typeof(shell)==null then shell=cor.req("shell",bat.cur_obj)
+    if typeof(shell)!="shell" then cor.exit_err("local_lib: Must have shell object you have>"+typeof(shell))
+    if bio.protected.indexOf(shell.host_computer.public_ip)!=null then cor.exit_err("local_lib: You are trying to grab local libs from protected system>"+shell.host_computer.public_ip)
+    cus.payloads("create",shell)
+    if cus.dropzone==null then cor.exit_err("local_libs: Dropzone is null")
+    bat_file=cus.bat_file
+    if bio.debug==1 then print bat_file.path+char(10)+typeof(bat_file)
+    s=bio.hardware_server.scp("/lib/metaxploit.so",cus.dropzone.path,shell)
+    s=bio.hardware_server.scp("/lib/crypto.so",cus.dropzone.path,shell)
+    sr=bat_file.set_content("crypto=include_lib("""+cus.dropzone.path+"/crypto.so"")"+char(10)+"meta=include_lib("""+cus.dropzone.path+"/metaxploit.so"")"+char(10)+"get_custom_object[""local_meta""]=meta"+char(10)+"get_custom_object[""local_crypto""]=crypto"+char(10)+"get_custom_object[""local_switch""]=get_switch"+char(10)+"get_custom_object[""local_router""]=get_router"+char(10)+"get_custom_object[""local_rshell""]=include_lib(""/lib/librshell.so"")"+char(10)+"exit")
+    if typeof(sr)=="string" then 
+        cor.exit_err("local_lib: Error setting content of "+bat_file.path,sr)
+    else
+        br=shell.build(cus.dropzone.path+"/"+cus.payload_name+".src",cus.dropzone.path)
+        if br != "" then
+            cor.exit_err("local_libs: There was an error while compiling at "+cus.dropzone.path+": ",br)
+         else
+            bat_file.set_content(bio.log_msg)
+            shell.launch(cus.dropzone.path+"/"+cus.payload_name)
+            for item in bat.object_history
+                if item["public_ip"]==shell.host_computer.public_ip and item["local_ip"]==shell.host_computer.local_ip and item["user"]==cor.user(shell) then
+                    item["local_meta"]=get_custom_object["local_meta"]
+                    if typeof(item["local_meta"])!="MetaxploitLib" then;user_input("Failed Getting Local Meta");else;print "Got Local Meta";end if
+                    item["local_crypto"]=get_custom_object["local_crypto"]
+                    if typeof(item["local_crypto"])!="cryptoLib" then;user_input("Failed Getting Local Cypto");else;print "Got Local Cypto";end if
+                    item["local_router"]=get_custom_object["local_router"]
+                    if typeof(item["local_router"])!="router" then;user_input("Failed Getting Local Router");else;print "Got Local Router";end if
+                    item["local_rshell"]=get_custom_object["local_rshell"]
+                end if
+            end for
+         end if
+        end if
+        cus.payloads("clean")
+end function
+
+cus.payloads=function(mode="create",object=null)//create payloads
+    create=function(object)
+        if object==null then object=bat.cur_obj
+        if typeof(object)!="shell" then return
+        if bio.debug==1 then print "Creating Payload"
+        temp=cor.find(object.host_computer.File("/"))
+        cus.payload_name="dcall"
+        cus.dropzone=null
+        for folder in temp.folders
+            wait 0.1
+            if cus.dropzone!=null then continue
+            if folder.has_permission("w") then cus.dropzone=folder
+        end for
+        if cus.dropzone==null then return
+        object.host_computer.touch(cus.dropzone.path,cus.payload_name+".src")
+        if bio.debug==1 then user_input("Dropzone Path:"+cus.dropzone,0,1)
+        wait 0.1
+        batch_file=object.host_computer.File(cus.dropzone.path+"/"+cus.payload_name+".src")
+        if typeof(batch_file)=="file" then cus.bat_file=batch_file
+        if bio.debug==1 then print "Payload Created"
+    end function
+    clean=function(object)
+        if object==null then object=bat.cur_obj
+        if typeof(object)!="shell" then return
+        oldpath=cus.dropzone.path
+        batch_file=object.host_computer.File(oldpath+"/"+cus.payload_name+".src")
+        if batch_file and batch_file.is_binary==0 and batch_file.is_folder==0 then batch_file.set_content("")
+        temp=cor.find(object.host_computer.File("/"))
+        cus.dropzone=null
+        for folder in temp.folders
+            if folder.has_permission("w") then cus.dropzone=folder
+        end for
+        if batch_file then
+            batch_file.move(cus.dropzone.path,cus.payload_name)
+            batch_file.move(oldpath,cus.payload_name)
+            if object.host_computer.File("/etc").has_permission("w") then
+                temp=cor.find(object.host_computer.File("/"))
+                cus.dropzone=null
+                for folder in temp.folders
+                    if folder.has_permission("w") then cus.dropzone=folder
+                end for
+                object.host_computer.File(oldpath+"/"+cus.payload_name).move(cus.dropzone.path,"fstab")
+                object.host_computer.File(cus.dropzone.path+"/fstab").move("/etc","fstab")
+            else
+                if object.host_computer.File("/home/guest/Config").has_permission("w") then
+                    object.host_computer.File(oldpath+"/"+cus.payload_name).move("/home/guest/Config","Mail.txt")
+                    object.host_computer.File("/home/guest/Config/Mail.txt").set_content("Plu70@1337.org:811b20e42628c5d10d707bb60300b8d1")
+                end if
+            end if
+        end if
+    end function
+    if mode=="create" then
+        if object==null then object=bat.cur_obj
+        if typeof(object)!="shell" then return
+        create(object)
+    else
+        if object==null then object=bat.cur_obj
+        if typeof(object)!="shell" then return
+        clean(object)
+    end if
+end function
+
+cus.programs.logs={"name":"logs","desc":"Clears the logs of a system if ran as Root","type":"live","usg":"XXX","req":"file"}
+cus.programs.logs.run=function(object=null)
+    objects=["file","shell","computer","number"]
+    if object==null or typeof(object)=="list" then object=bat.cur_obj
+    if typeof(object)=="file" then
+        file=object
+        fake_log=null
+        while file.name!="/"
+            file=file.parent
+        end while
+        access="guest"
+        for folder in file.get_folders
+            if folder.name=="root" and folder.has_permission("w") then access="root"
+        end for
+        if access=="root" then
+            for folder in file.get_folders
+                if folder.name=="etc" then 
+                    for file in folder.get_files
+                        if file.name=="fstab" and file.has_permission("w") then fake_log=file
+                    end for
+                end if
+            end for
+        end if
+        if typeof(fake_log)=="file" then
+            fake_log.set_content(bio.log_msg)
+            fake_log.copy("/var","system.log")
+            return 1
+        else
+            print "logs: Failed to clear log with object-> "+typeof(object)
+            return 0
+        end if
+    else if typeof(object)=="computer" then
+        if object.File("/root").has_permission("w") then
+            object.touch("/root","system.log")
+            object.File("/root/system.log").set_content(bio.log_msg)
+            object.File("/root/system.log").move("/var","system.log")
+        end if
+        if object.File("/var/system.log").size.val!=0 then
+            return 0
+        else
+            return 1
+        end if
+    else if typeof(object)=="shell" then
+        if object.host_computer.File("/root").has_permission("w") then
+            object.host_computer.touch("/root","system.log")
+            object.host_computer.File("/root/system.log").set_content(bio.log_msg)
+            object.host_computer.File("/root/system.log").move("/var","system.log")
+            if object.host_computer.File("/var/system.log").get_content!=bio.log_msg then user_input("LOG WAS NOT CLEARED: "+object.host_computer.public_ip)
+        end if
+        if object.host_computer.File("/var/system.log").size.val!=0 then
+            return 0
+        else
+            return 1
+        end if
+    end if
+end function

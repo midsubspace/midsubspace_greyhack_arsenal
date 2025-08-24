@@ -375,3 +375,4 @@ cor.objects=function(mode=null,object=null)
     end if
     bat.run
 end function
+cor.stop=function(txt="Press Any Key To Continue!");user_input(txt.color("ffffff"),0,1);end function
