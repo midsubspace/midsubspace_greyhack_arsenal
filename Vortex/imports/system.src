@@ -60,7 +60,7 @@ sys.airmon.run=function(params)
     print(format_columns(formatOutput + computer.network_devices))
     bat.run
 end function
-sys["apt-get"]={"name":"apt-get","usage":"Usage: apt-get install [program_name]".bold+char(10)+"Usage: apt-get search [program_name]".bold+char(10)+"Usage: apt-get show [repo_address]".bold+char(10)+"Usage: apt-get addrepo [repo_address]".bold+char(10)+"Usage: apt-get delrepo [repo_address]".bold+char(10)+"Usage: apt-get update".bold+char(10)+"Usage: apt-get upgrade".bold,"req":"XXX"}
+sys["apt-get"]={"name":"apt-get","usage":"apt-get install [program_name]".bold+char(10)+"Usage: apt-get search [program_name]".bold+char(10)+"Usage: apt-get show [repo_address]".bold+char(10)+"Usage: apt-get addrepo [repo_address]".bold+char(10)+"Usage: apt-get delrepo [repo_address]".bold+char(10)+"Usage: apt-get update".bold+char(10)+"Usage: apt-get upgrade".bold,"req":"XXX"}
 sys["apt-get"].run=function(params) //TODO Needs Testing
     aptclient=cor.apt
     bat.run
@@ -162,10 +162,9 @@ sys["apt-get"].run=function(params) //TODO Needs Testing
     bat.run
 end function
 sys.build={"name":"build","usage":"[file_source_code] [path_new_program]","req":"shell"}
-sys.build.run=function(params) //TODO Needs Testing
+sys.build.run=function(params)
     if params.len != 2 then
         sys.man.run(["build"])
-        A.bat.run
     else
         pathSource = params[0]
         programPath = params[1]
@@ -189,7 +188,8 @@ sys.cat={"name":"cat","usage":"[file]","req":"computer"}
 sys.cat.run=function(params)
     if params.len != 1 or params[0] == "-h" or params[0] == "--help" then ;sys.man.run(["cat"]);A.bat.run;end if
     pathFile = params[0]
-    file = cor.req("computer",bat.cur_obj).File(pathFile)
+    object = cor.req("computer",bat.cur_obj)
+    file=null
     if file ==null then file=cor.req("computer",bat.cur_obj).File(bat.path+"/"+pathFile)
     if file == null then ;print("cat: file not found: "+pathFile);bat.run;end if
     if file.is_binary then ;print("cat: can't open " + file.path + ". Binary file");bat.run;end if
@@ -241,7 +241,7 @@ sys.cd.run=function(params)
     bat.run
 end function
 sys.chgrp={"name":"chgrp","usage":"[opt:-R] [new group] [path file/folder]","req":"XXX"}
-sys.chgrp.run=function(params)//TODO Needs Testing
+sys.chgrp.run=function(params)
     if params.len < 2 or (params.len == 3 and params[0] != "-R") then ; sys.man.run(["chgrp"]);bat.run;end if
     group = params[0]
     pathFile = params[1]
@@ -258,7 +258,7 @@ sys.chgrp.run=function(params)//TODO Needs Testing
     bat.run
 end function
 sys.chmod={"name":"chmod","usage":"[opt:-R] [u,g,o+wrx] [path file/folder]","req":"XXX"}
-sys.chmod.run=function(params)//TODO Needs Testing
+sys.chmod.run=function(params)
     if params.len < 2 or (params.len == 3 and params[0] != "-R") then ;sys.man.run(["chmod"]);bat.run;end if
     permissions = params[0]
     pathFile = params[1]
@@ -275,7 +275,7 @@ sys.chmod.run=function(params)//TODO Needs Testing
     bat.run
 end function
 sys.chown={"name":"chown","usage":"[opt:-R] [owner] [path file/folder]","req":"XXX"}
-sys.chown.run=function(params)//TODO needs testing
+sys.chown.run=function(params)
     if params.len < 2 or (params.len == 3 and params[0] != "-R") then ;sys.man.run(["chown"]);bat.run;end if
     owner = params[0]
     pathFile = params[1]
@@ -292,16 +292,13 @@ sys.chown.run=function(params)//TODO needs testing
     bat.run
 end function
 sys.cp={"name":"cp","usage":"[path to file] [path to copy]","req":"XXX"}
-sys.cp.run=function(params)//TODO needs testing
+sys.cp.run=function(params)
     if params.len != 2 or params[0] == "-h" or params[0] == "--help" then ;sys.man.run(["cp"]);bat.run;end if
-
     origFile = get_abs_path(params[0])
     destFolder = get_abs_path(params[1])
-
     computer = get_shell.host_computer
     file = computer.File(origFile)
     if not file then exit("cp: can't find " + origFile)
-
     newName = ""
     folder = computer.File(destFolder)
     if not folder then
@@ -324,7 +321,6 @@ sys.cp.run=function(params)//TODO needs testing
         if not folder then ;print ("cp: can't copy file. " + destFolder + " doesn't exist.");bat.run;end if
         
     end if
-
     if folder then
                 
         //Check if is trying to copy the file on itself. Ignored.
@@ -779,7 +775,7 @@ sys.ftp.run=function(params)//TODO needs testing
     bat.run
 end function
 sys.groupadd={"name":"groupadd","usage":"[user] [new group]","req":"XXX"}
-sys.groupadd.run=function(params)//TODO needs testing
+sys.groupadd.run=function(params)
     user=params[0]
     group=params[1]
     computer=cor.req("computer",bat.cur_obj)
@@ -788,7 +784,7 @@ sys.groupadd.run=function(params)//TODO needs testing
     if output then ;print "groupadd: "+output.color("ffff00");bat.run;end if
 end function
 sys.groupdel={"name":"groupdel","usage":"[user] [group]","req":"XXX"}
-sys.groupdel.run=function(params)//TODO needs testing
+sys.groupdel.run=function(params)
     user=params[0]
     group=params[1]
     computer=cor.req("computer",bat.cur_obj)
@@ -797,7 +793,7 @@ sys.groupdel.run=function(params)//TODO needs testing
     if output then ;print "groupdel: "+output.color("ffff00");bat.run;end if
 end function
 sys.groups={"name":"groups","usage":"[username]","req":"XXX"}
-sys.groups.run=function(params)//TODO needs testing
+sys.groups.run=function(params)
     user=params[0]
     computer=cor.req("computer",bat.cur_obj)
     output=computer.groups(user)
@@ -838,7 +834,7 @@ sys.ifconfig.run=function(params)
         if output.len > 0 then print(output)
     end if
 end function
-sys.iwconfig={"name":"iwconfig","usage":"Usage: iwconfig [net device] [bssid] [essid name] [pass key]".bold+char(10)+"Example: iwconfig wlan0 00:11:22:33:44 mynetwork mypass","req":"XXX"}
+sys.iwconfig={"name":"iwconfig","usage":"Usage:[net device] [bssid] [essid name] [pass key]".bold+char(10)+"Example: iwconfig wlan0 00:11:22:33:44 mynetwork mypass","req":"XXX"}
 sys.iwconfig.run=function(params)
     if params.len != 4 or params[0] == "-h" or params[0] == "--help" then sys.man.run(["iwconfig"])
     computer = cor.req("computer",bat.cur_obj)
@@ -866,21 +862,43 @@ sys.iwlist.run=function(params)
     print(cor.format(info))
 end function
 sys.kill={"name":"kill","usage":"[PID]","req":"XXX"}
-sys.kill.run=function(params)//TODO needs testing
+sys.kill.run=function(params)
+    if params.len!=1 then sys.man.run(["kill"])
     PID = params[0].to_int
-    output = cor.req("computer".bat.cur_obj).close_program(PID)
-    if output == true then ;print("Process " + PID + " closed");bat.run;end if
-    if output then 
-        print(output)
-        print("kill: Process " + PID + " not found").color("ffff00")
+    output = cor.req("computer",bat.cur_obj).close_program(PID)
+    if output==true then 
+        print("Process " + PID + " closed")
         bat.run
+    else
+        cor.exit_err("kill: Process " + PID + " not found",output)
     end if
 end function
 sys.ln={"name":"ln","usage":"[path file] [path to link]","req":"XXX"}
-sys.ln.run=function(params)//TODO needs testing
+sys.ln.run=function(params)
+    if params.len > 0 and params[0] == "-s" then
+        params = params[1:]
+    end if
+    if params.len != 2 or params[0] == "-h" or params[0] == "--help" then exit(command_info("ln_usage"))
+
+    pathFile = get_abs_path(params[0])
+    pathLink = get_abs_path(params[1])
+    pathParent = parent_path(pathLink)
+    if pathParent == pathLink then
+        pathParent = current_path
+    end if
+
+    file = get_shell.host_computer.File(pathFile)
+        
+    if file == null then exit("ln: file not found: "+pathFile)
+    if not file.has_permission("w") then exit("ln: permission denied")
+
+    arrayPath = pathLink.split("/")
+    newName = arrayPath[arrayPath.len-1]
+    output = file.symlink(pathParent, newName)
+    if output and output != 1 then print(output)
 end function
 sys.ls={"name":"ls","usage":"[opt:-l, -a, -la] [opt: path]","req":"XXX"}
-sys.ls.run=function(params)//TODO Needs Other things first
+sys.ls.run=function(params)
     ValidateInput = function(input)
         return (input == "-la" or input == "-l" or input == "-a")
     end function 
@@ -895,7 +913,7 @@ sys.ls.run=function(params)//TODO Needs Other things first
         sys.man.run(["ls"])
     else
         computer = cor.req("computer",bat.cur_obj)
-        folderPath = current_path
+        folderPath = bat.path
         if params and params[params.len - 1].indexOf("-") == null then
             folderPath = params[params.len - 1]
         end if
@@ -961,7 +979,33 @@ sys.man.run=function(params)
     bat.run
 end function
 sys.mkdir={"name":"mkdir","usage":"[path to new folder]","req":"XXX"}
-sys.mkdir.run=function(params)//TODO Needs Other things first
+sys.mkdir.run=function(params)
+    if params.len != 1 or params[0] == "-h" or params[0] == "--help" then
+        sys.man.run(["mkdir"])
+    else
+        computer = cor.req("computer",bat.cur_obj)
+        pathFile = get_abs_path(params[0])
+        pathParent = parent_path(pathFile)
+        existFile = computer.File(pathFile)
+        if pathParent == pathFile then
+            pathParent = current_path
+        end if
+        parent = computer.File(pathParent)
+        if parent == null then
+            cor.exit_err("mkdir: " + pathParent + " not found")
+        else if existFile != null then
+            cor.exit_err("mkdir: " + existFile.path + " file exists")
+        else if not parent.has_permission("w") then
+            cor.exit_err("mkdir: permission denied")
+        else
+            arrayPath = pathFile.split("/")
+            output = computer.create_folder(parent.path, arrayPath[arrayPath.len - 1])
+            if output != null and output != 1 then
+                print(output)
+            end if 
+        end if
+    end if
+    bat.run
 end function
 sys.mv={"name":"mv","usage":"[path to file] [path to new folder]","req":"XXX"}
 sys.mv.run=function(params)//TODO Needs Other things first
@@ -973,21 +1017,20 @@ sys.nslookup.run=function(params)//TODO needs testing
 end function
 sys.passwd={"name":"passwd","usage":"[username]","req":"XXX"}
 sys.passwd.run=function(params)//TODO needs testing
+    if params.len!=1 then sys.man.run(["passwd"])
     inputMsg = "Changing password for user " + params[0] +char(10)+"New password:"
     inputPass = user_input(inputMsg, true)
     output = get_shell.host_computer.change_password(params[0], inputPass)
     if output == true then 
-        print("password modified OK")
+        print("password for user "+params[0]+" modified OK")
         bat.run
     end if
     if output then 
-        print(output)
-        print("passwd: password not modified").color("ffff00")
-        bat.run
+        cor.exit_err("passwd: password not modified",output)
     end if
 end function
 sys.ping={"name":"ping","usage":"[ip address]","req":"XXX"}
-sys.ping.run=function(params)//TODO needs testing
+sys.ping.run=function(params)
     result = cor.req("shell",bat.cur_obj).ping(params[0])
     if result then
         if typeof(result) == "string" then
@@ -996,20 +1039,19 @@ sys.ping.run=function(params)//TODO needs testing
             print("Ping successful")
         end if
     else
-        print("ip unreachable")
+        cor.exit_err("ping: IP Address "+params[0]+" unreachable")
     end if
 end function
-sys.ps={"name":"ps","usage":"ps","req":"XXX"}
-sys.ps.run=function(params)//TODO needs testing
-    output=cor.req("computer",bat.cur_obj).show_procs
-    print cor.format(output)
+sys.ps={"name":"ps","usage":"","req":"XXX"}
+sys.ps.run=function(params)
+    print cor.format(cor.req("computer",bat.cur_obj).show_procs)
 end function
-sys.pwd={"name":"pwd","usage":"pwd","req":"XXX"}
-sys.pwd.run=function(params)//TODO needs testing
+sys.pwd={"name":"pwd","usage":"","req":"XXX"}
+sys.pwd.run=function(params)
     print bat.path
 end function
 sys.reboot={"name":"reboot","usage":"[-sm]","req":"XXX"}
-sys.reboot.run=function(params)//TODO needs testing
+sys.reboot.run=function(params)//TODO needs warning and prompt user before rebooting
     if params.len > 0 and (params[0] == "-h" or params[0] == "-help") then ;sys.man.run(["reboot"]);bat.run;end if
     isSafeMode = params.len > 0 and params[0] == "-sm"
     output = cor.req("computer",bat.cur_obj).reboot(isSafeMode)
@@ -1020,37 +1062,65 @@ sys.reboot.run=function(params)//TODO needs testing
     end if
 end function
 sys.rm={"name":"rm","usage":"[file]","req":"XXX"}
-sys.rm.run=function(params)//TODO Needs Other things first
+sys.rm.run=function(params)
+    if params.len < 1 or params.len > 2 or params[0] == "-h" or params[0] == "--help" then sys.man.run(["rm"])
+    pathFile = get_abs_path(params[0])
+    isRecursive = 0
+    if params[0] == "-r" then
+        if params.len == 1 then sys.man.run(["rm"])
+        isRecursive = 1
+        pathFile = params[1]
+    end if
+    file = cor.req("computer",bat.cur_obj).File(pathFile)
+    if file == null then exit("rm: file not found: "+pathFile)
+    if not file.has_permission("w") then cor.exit_err("rm: permission denied")
+    if file.is_folder == 1 and isRecursive == 0 and file.is_symlink == 0 then
+        cor.exit_err("rm: " + file.name + " is a directory")
+    else
+        output = file.delete
+        if output.len > 0 then print(output)
+    end if
+    bat.run
 end function
-sys.rmdir={"name":"rmdir","usage":"XXX","req":"XXX"}
-sys.rmdir.run=function(params)//TODO Needs Other things first
+sys.rmdir={"name":"rmdir","usage":"rmdir [empty folder]","req":"XXX"}
+sys.rmdir.run=function(params)
+    if params.len < 1 or params.len > 2 or params[0] == "help" then sys.man.run(["rmdir"])
+    path = get_abs_path(params[0])
+    f = cor.req("computer",bat.cur_obj).File(path)
+    if typeof(f) != "file" then cor.exit_err("rmdir: failed to remove '" + path + "' no such file or directory")
+    if f.is_folder == 0 then cor.exit_err("rmdir: " + f.name + " is not a directory.")
+    if f.get_files.len >= 1 or f.get_folders.len >= 1 then cor.exit_err("rmdir: failed to remove '" + path + "' directory not empty")
+    fd = f.delete
+    if fd.trim.len == 0 then bat.run
+    cor.exit_err("rmdir: failed to remove '" + path + "': " + fd.trim)
 end function
 sys.scp={"name":"scp","usage":"-d [path to source file/folder] [path to destination file/folder] or -u [path to source file/folder] [path to destination file/folder]","req":"XXX"}
 sys.scp.run=function(params)//TODO Needs Other things first
 end function
 sys.ssh={"name":"ssh","usage":"[user@password] [ip address] [(opt) port]","req":"XXX"}
-sys.ssh.run=function(params)//TODO Needs testing
+sys.ssh.run=function(params)
+    if params.len!=2 then sys.man.run(["ssh"])
     creds=params[0]
     ip=params[1]
     port=22
     if params.len==3 then port=params[2].to_int
     user=creds.split("@")[0]
     pass=creds.split("@")[1]
-    shell=cor.req("shell",bat.cur_obj).connect_service(ip,port,user,pass,"ssh")
-    if typeof(shell) then 
+    shell=get_shell.connect_service(ip,port,user,pass,"ssh")//TODO Change get_shell to fake ip from botnet
+    if typeof(shell)=="shell" then
         bat.cur_obj=shell
-        usr=core.user(bat.cur_obj)
-        if usr=="root" then
+        cor.objects("add",bat.cur_obj)
+        bat.usr=cor.user(bat.cur_obj)
+        if bat.usr=="root" then
             bat.path="/root"
-        else if usr=="guest" then
+        else if bat.usr=="guest" then
             bat.path="/home/guest"
         else
-            bat.path="/home/"+usr
+            bat.path="/home/"+bat.usr
         end if
         bat.run
     else
-        print "ssh: Error Getting Shell:"+shell
-        bat.run
+        cor.exit_err("ssh: Error Getting Shell ",shell)
     end if
 end function
 sys.sudo={"name":"sudo","usage":"[opt:-s] [command] or -u [username]","req":"XXX"}
@@ -1065,8 +1135,8 @@ sys.touch.run=function(params)//TODO needs testing
         pathParent = current_path
     end if
     parent = computer.File(pathParent)
-    if not parent then ;print("touch: " + pathParent + " not found");bat.run;end if
-    if not parent.has_permission("w") then ;print("touch: permission denied");bat.run;end if
+    if not parent then cor.exit_err("touch: " + pathParent + " not found")
+    if not parent.has_permission("w") then cor.exit_err("touch: permission denied")
     arrayPath = pathFile.split("/")
     output = computer.touch(parent.path, arrayPath[arrayPath.len - 1])
     if output and output != 1 then print(output)
@@ -1097,7 +1167,7 @@ sys.userdel.run=function(params)//TODO needs testing
     if output == true then ;print("user " + params[0] + " deleted.");bat.run;end if
     if output then ;print("userdel: user not deleted.").color("ffff00");char(10);print(output);bat.run;end if
 end function
-sys.whoami={"name":"whoami","usage":"whoami","req":"XXX"}
+sys.whoami={"name":"whoami","usage":"","req":"XXX"}
 sys.whoami.run=function(params)
     print(cor.user(bat.cur_obj))
 end function

@@ -122,7 +122,10 @@ cor.format=function(text, fillLastRow=false)
 
     return newList.join(" ").replace(char(20000),"\").replace(char(20001),"<").replace(char(20002),">").replace(char(20003)," ")
 end function
-cor.user=function(object)
+cor.user=function(object=null)
+    if object==null then
+        cor.exit_err("cor.user: Object passed was not a shell,computer,file object")
+    end if
     if typeof(object)=="shell" then
         if not object.host_computer.File("/home") then return "guest"
         if object.host_computer.File("/root").has_permission("w") then return "root"
@@ -156,8 +159,7 @@ cor.user=function(object)
 end function
 cor.exit_err=function(message="You Fucked Up",output=null)
     if output!=null then
-        print output
-        print message.color("ffff00")
+        print message.color("ffff00")+char(10)+output
     else
         print message.color("ffff00")
     end if
@@ -309,4 +311,67 @@ cor.test=function(msg="DEBUG SHIT")
     if bat.debug!=1 then return
     print msg
     user_input("Press Enter To Continue",0,1)
+end function
+cor.objects=function(mode=null,object=null)
+    if object==null then object=bat.cur_obj
+    if ["-a","add"].indexOf(mode)!=null then
+        if typeof(object)=="shell" then
+            for existing_object in bat.object_history
+                if existing_object["type"]=="shell" and cor.user(object)==existing_object["user"] and existing_object["public_ip"]==object.host_computer.public_ip then;print "Object Has Already Been Saved In RAM";return;end if
+            end for
+            bat.object_history.push({"type":"shell","public_ip":object.host_computer.public_ip,"local_ip":object.host_computer.local_ip,"user":cor.user(object),"object":object})
+        else if typeof(object)=="computer" then
+            bat.object_history.push({"type":"computer","public_ip":object.public_ip,"local_ip":object.local_ip,"user":cor.user(object),"object":object})
+        else if typeof(object)=="file" then
+            return null
+        else
+            cor.exit_err("cor.objects mode:add Failed: Invalid Object Type Passed.->"+typeof(object))
+        end if
+        return
+    else if ["-r","remove"].indexOf(mode)!=null then
+        print "Unable to Remove Objects at this time"
+        return
+    else if ["-v","view"].indexOf(mode)!=null then
+        data="TYPE PUB_IP LOC_IP USER"
+        for object in bat.object_history
+            data=data+char(10)+object["type"]+" "+object["public_ip"]+" "+object["local_ip"]+" "+object["user"]
+        end for
+        print cor.format(data)
+    else if ["-s","switch"].indexOf(mode)!=null then
+        type=cor.menu(["shell","computer"])
+        if type=="shell" then
+            shells=[]
+            for object in bat.object_history
+                if object["type"]=="shell" then shells.push(object)
+            end for
+            ips=[]
+            for shell in shells
+                ips.push(shell["public_ip"]+"@"+shell["local_ip"]+"#"+shell["user"])
+            end for
+            choice=cor.menu(ips)
+            choice_public_ip=choice.split("@")[0]
+            choice_local_ip=choice.split("@")[1].split("#")[0]
+            choice_user=choice.split("#")[1]
+            for shell in shells
+                if shell["public_ip"]==choice_public_ip and shell["local_ip"]==choice_local_ip and shell["user"]==choice_user then object=shell
+            end for
+            bat.cur_obj=object["object"]
+            bat.usr=cor.user(bat.cur_obj)
+            if bat.usr=="root" then
+                bat.path="/root"
+            else if bat.usr=="guest" then
+                bat.path="/home/guest"
+            else
+                bat.path="/home/"+bat.usr
+            end if
+            bat.run
+        else if type=="computer" then
+        
+        else
+            cor.exit_err("Currently only stores Shell and Computer Objects")
+        end if
+    else
+        cor.exit_err("cor.objects: invalid mode passed->"+mode)
+    end if
+    bat.run
 end function
