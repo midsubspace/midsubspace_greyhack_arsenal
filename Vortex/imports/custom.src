@@ -25,11 +25,11 @@ cus.local_libs=function(shell=null)//Grabs local libs from a given shell object
             for item in bat.object_history
                 if item["public_ip"]==shell.host_computer.public_ip and item["local_ip"]==shell.host_computer.local_ip and item["user"]==cor.user(shell) then
                     item["local_meta"]=get_custom_object["local_meta"]
-                    if typeof(item["local_meta"])!="MetaxploitLib" then;user_input("Failed Getting Local Meta");else;print "Got Local Meta";end if
+                    if typeof(item["local_meta"])!="MetaxploitLib" then;print("Failed Getting Local Meta");else;print "Got Local Meta";end if
                     item["local_crypto"]=get_custom_object["local_crypto"]
-                    if typeof(item["local_crypto"])!="cryptoLib" then;user_input("Failed Getting Local Cypto");else;print "Got Local Cypto";end if
+                    if typeof(item["local_crypto"])!="cryptoLib" then;print("Failed Getting Local Cypto");else;print "Got Local Cypto";end if
                     item["local_router"]=get_custom_object["local_router"]
-                    if typeof(item["local_router"])!="router" then;user_input("Failed Getting Local Router");else;print "Got Local Router";end if
+                    if typeof(item["local_router"])!="router" then;print("Failed Getting Local Router");else;print "Got Local Router";end if
                     item["local_rshell"]=get_custom_object["local_rshell"]
                 end if
             end for

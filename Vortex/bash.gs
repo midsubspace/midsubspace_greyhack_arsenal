@@ -6,8 +6,8 @@ import_code("/bin/programs.src") // override=imports/custom.src
 
 
 bat={"cur_obj":get_shell,"cd":0,"path":current_path,"version":"Vortex Concept Build","debug":0,"usr":active_user,"object_history":[{"type":"shell","public_ip":get_shell.host_computer.public_ip,"local_ip":get_shell.host_computer.local_ip,"user":active_user,"object":get_shell,"local_meta":null,"local_crypto":null,"local_router":null,"local_rshell":null}]}
-bat.id="GB37IKPM5162545832787968"
-bat.build_date="2025-08-23 23:53:17"
+bat.id="NR21ATH500000000000150498334212096"
+bat.build_date="2025-08-24 20:55:13"
 
 setup=function
     et=function
@@ -266,7 +266,7 @@ bat.run=function()
         else if params[0]=="master" then
             if typeof(get_shell("root","test"))=="shell" then
                 bat.cur_obj=get_shell("root","test")
-                bat.usr=="root"
+                bat.usr=cor.user(bat.cur_obj)
                 bat.path="/root"
                 bat.run
             end if

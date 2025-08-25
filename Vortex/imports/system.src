@@ -300,7 +300,7 @@ sys.chown.run=function(params)
 end function
 sys.cp={"name":"cp","usage":"[path to file] [path to copy]","req":"XXX"}
 sys.cp.run=function(params)
-    if params.len != 2 or params[0] == "-h" or params[0] == "--help" then ;sys.man.run(["cp"]);bat.run;end if
+    if params.len != 2 or params[0] == "-h" or params[0] == "--help" then sys.man.run(["cp"])
     origFile = get_abs_path(params[0])
     destFolder = get_abs_path(params[1])
     computer = get_shell.host_computer
@@ -1018,15 +1018,16 @@ sys.mv={"name":"mv","usage":"[path to file] [path to new folder]","req":"XXX"}
 sys.mv.run=function(params)//TODO Needs Other things first
 end function
 sys.nslookup={"name":"nslookup","usage":"[web address]","req":"XXX"}
-sys.nslookup.run=function(params)//TODO needs testing
-    address = params[0]
-	print("Address: "+nslookup(address))
+sys.nslookup.run=function(params)
+	print("Address: "+nslookup(params[0]))
 end function
 sys.passwd={"name":"passwd","usage":"[username]","req":"XXX"}
-sys.passwd.run=function(params)//TODO needs testing
+sys.passwd.run=function(params)
     if params.len!=1 then sys.man.run(["passwd"])
-    inputMsg = "Changing password for user " + params[0] +char(10)+"New password:"
+    inputMsg = "Changing password for user " + params[0] +char(10)+"New Password:"
     inputPass = user_input(inputMsg, true)
+    verifyPass=user_input("Confirm New Password:",true)
+    if inputPass!=verifyPass then cor.exit_err("passwd: Passwords Do Not Match!")
     output = cor.req("computer",bat.cur_obj).change_password(params[0], inputPass)
     if output == true then 
         print("password for user "+params[0]+" modified OK")
@@ -1058,14 +1059,17 @@ sys.pwd.run=function(params)
     print bat.path
 end function
 sys.reboot={"name":"reboot","usage":"[-sm]","req":"XXX"}
-sys.reboot.run=function(params)//TODO needs warning and prompt user before rebooting
+sys.reboot.run=function(params)
     if params.len > 0 and (params[0] == "-h" or params[0] == "-help") then ;sys.man.run(["reboot"]);bat.run;end if
     isSafeMode = params.len > 0 and params[0] == "-sm"
     output = cor.req("computer",bat.cur_obj).reboot(isSafeMode)
+    verify=user_input("You are about to reboot "+cor.req("computer",bat.cur_obj).public_ip+"@"+cor.req("computer",bat.cur_obj).local_ip+char(10)+"Confirm: y/n >").lower
     if output and output != 1 then 
         print(output)
-    else 
+    else if verify=="y" then
         print("Closing programs...\nRestarting...")
+    else
+        cor.exit_err("Abort Restart...")
     end if
 end function
 sys.rm={"name":"rm","usage":"[file]","req":"XXX"}
@@ -1218,6 +1222,7 @@ sys.touch.run=function(params)
 end function
 sys.useradd={"name":"useradd","usage":"[new username]","req":"XXX"}
 sys.useradd.run=function(params)//TODO needs testing
+    if params.len!=1 then sys.man(["useradd"])
     inputMsg = "Setting password for user " + params[0] +".\nNew password: "
     inputPass = user_input(inputMsg, true)
     computer=cor.req("computer",bat.cur_obj)
@@ -1229,14 +1234,15 @@ sys.useradd.run=function(params)//TODO needs testing
         bat.run
     end if
 end function
-sys.userdel={"name":"userdel","usage":"[opt:-r] [username]","req":"XXX"}
-sys.userdel.run=function(params)//TODO needs testing
+sys.userdel={"name":"userdel","usage":"userdel [opt:-r] [username]"+char(10)+"Use paremeter -r to delete user files too."+char(10)+"Example: userdel -r kuro","req":"XXX"}
+sys.userdel.run=function(params)
+    if params.len==0 then sys.man.run(["userdel"])
     delete = 0
     if params[0] == "-r" then
-    delete = 1
-    params.pull
+        delete = 1
+        params.pull
     end if
-    computer.cor.req("computer",bat.cur_obj)
+    computer=cor.req("computer",bat.cur_obj)
     output = computer.delete_user(params[0], delete)
     if output == true then ;print("user " + params[0] + " deleted.");bat.run;end if
     if output then ;print("userdel: user not deleted.").color("ffff00");char(10);print(output);bat.run;end if
@@ -1246,7 +1252,7 @@ sys.whoami.run=function(params)
     print(cor.user(bat.cur_obj))
 end function
 sys.whois={"name":"whois","usage":"[public IP address]","req":"XXX"}
-sys.whois.run=function(params)//TODO fix sys.man
+sys.whois.run=function(params)
     if params.len != 1 or params[0] == "-h" or params[0] == "--help" then
 	    sys.man.run(["whois"])
     else
