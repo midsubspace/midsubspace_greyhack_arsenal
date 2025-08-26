@@ -7,7 +7,7 @@ import_code("/bin/programs.src") // override=imports/custom.src
 
 bat={"cur_obj":get_shell,"cd":0,"path":current_path,"version":"Vortex Concept Build","debug":0,"usr":active_user,"object_history":[{"type":"shell","public_ip":get_shell.host_computer.public_ip,"local_ip":get_shell.host_computer.local_ip,"user":active_user,"object":get_shell,"local_meta":null,"local_crypto":null,"local_router":null,"local_rshell":null}]}
 bat.id="RS624JMP6293537635172352"
-bat.build_date="2025-08-25 20:06:33"
+bat.build_date="2025-08-25 20:22:03"
 
 setup=function
     et=function
