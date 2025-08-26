@@ -1015,7 +1015,65 @@ sys.mkdir.run=function(params)
     bat.run
 end function
 sys.mv={"name":"mv","usage":"[path to file] [path to new folder]","req":"XXX"}
-sys.mv.run=function(params)//TODO Needs Other things first
+sys.mv.run=function(params)//TODO Add in custom stuff to allow mving files no mater of current path
+    Basename = function(p)
+        if p == "/" then return "/"
+        if p.len > 1 and p[p.len-1:p.len] == "/" then
+            p = p[0:p.len-1] 
+        end if
+        parts = p.split("/")
+        return parts[parts.len-1]
+    end function
+    if params.len != 2 then
+        sys.man.run(["mv"])
+    else
+        origFile = get_abs_path(params[0])
+        destFolder = get_abs_path(params[1])
+        computer = get_shell.host_computer
+        file = computer.File(origFile)
+        if file == null then
+            cor.exit_err("mv: can't find ",origFile)
+        else
+            newName = ""
+            folder = computer.File(destFolder)
+            if folder == null then
+                pathParent = parent_path(destFolder)
+                if pathParent == destFolder then			
+                    newName = destFolder
+                    destFolder = file.parent.path		
+                    file.move(destFolder, newName)
+                else
+                    folder = computer.File(pathParent)
+                    newName = Basename(destFolder)
+                    if folder == null then				
+                        cor.exit_err("mv: can't copy file. " + destFolder + " doesn't exist.")
+                    end if			
+                end if
+            end if
+            if folder != null then
+                if folder.parent != null and file.parent.path == folder.parent.path and file.name == folder.name then cor.exit_err("mv: Error 4862")
+                finalDest = folder.path
+                if(newName.len == 0) then
+                    newName = file.name
+                end if
+                if not folder.is_folder then			
+                    finalDest = file.parent.path
+                    newName = folder.name
+                end if
+                fileParentPath = "none"
+                folderParentPath = "none"
+                if file.parent != null then fileParentPath = file.parent.path
+                if folder.parent != null then folderParentPath = folder.parent.path
+                if fileParentPath == folderParentPath and finalDest == folderParentPath and newName != file.name then
+                    output = file.rename(newName)
+                    if output and output != 1 then print(output)
+                else
+                    output = file.move(finalDest, newName)
+                    if output and output != 1 then print(output)
+                end if
+            end if
+        end if
+    end if
 end function
 sys.nslookup={"name":"nslookup","usage":"[web address]","req":"XXX"}
 sys.nslookup.run=function(params)
