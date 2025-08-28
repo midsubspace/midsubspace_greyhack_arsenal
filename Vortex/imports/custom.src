@@ -101,7 +101,7 @@ cus.payloads=function(mode="create",object=null)//create payloads
 end function
 
 cus.programs.logs={"name":"logs","desc":"Clears the logs of a system if ran as Root","type":"live","usg":"XXX","req":"file"}
-cus.programs.logs.run=function(object=null)//TODO FIX SHIT
+cus.programs.logs.run=function(object=null)
     objects=["file","shell","computer","number"]
     if object==null or typeof(object)=="list" then object=bat.cur_obj
     if typeof(object)=="file" then
@@ -148,11 +148,15 @@ cus.programs.logs.run=function(object=null)//TODO FIX SHIT
             object.host_computer.File("/root/system.log").set_content(bio.log_msg)
             object.host_computer.File("/root/system.log").move("/var","system.log")
             if object.host_computer.File("/var/system.log").get_content!=bio.log_msg then user_input("LOG WAS NOT CLEARED: "+object.host_computer.public_ip)
+        else
+            cor.exit_err("You don't have permission to edit the system.log")
         end if
         if object.host_computer.File("/var/system.log").size.val!=0 then
             return 0
+            print "Log Cleared"
         else
             return 1
+            print "Log Not Cleared"
         end if
     end if
 end function
