@@ -101,7 +101,7 @@ cus.payloads=function(mode="create",object=null)//create payloads
 end function
 
 cus.programs.logs={"name":"logs","desc":"Clears the logs of a system if ran as Root","type":"live","usg":"XXX","req":"file"}
-cus.programs.logs.run=function(object=null)
+cus.programs.logs.run=function(object=null)//TODO FIX SHIT
     objects=["file","shell","computer","number"]
     if object==null or typeof(object)=="list" then object=bat.cur_obj
     if typeof(object)=="file" then
@@ -154,5 +154,166 @@ cus.programs.logs.run=function(object=null)
         else
             return 1
         end if
+    end if
+end function
+
+cus.programs.elaunch={"name":"elaunch","desc":"Launch EXE's","type":"live","usg":"XXX","req":"shell"}
+cus.programs.elaunch.run=function(params)//TODO allow lowercase of program names
+    shell=cor.req("shell",bat.cur_obj)
+    if params.len>0 then
+        if shell.host_computer.File("/usr/bin"+params[0]+".exe") then
+            if params[0]=="browser" and params.len==2 then
+                shell.launch("/usr/bin/"+params[0],params[1])
+            else
+                shell.launch("/usr/bin/"+params[0]+".exe")
+            end if
+            bat.run
+        end if
+    end if
+    local_programs=[]
+    bio.light_mode="pass"
+    local_files=cus.programs.light.run()
+    for f in local_files
+        dupe=0
+        if local_programs.len>0 then
+            for l in local_programs
+                if f.name==l.split("/")[l.split("/").len-1] then dupe=1
+            end for
+        end if
+        if f.name.split("/").len>1 and f.name.split("/.")[1]=="exe" and dupe==0 then local_programs.push(f.path)
+    end for
+    bio.light_mode="show"
+    for program in bio.hardware_server.host_computer.File("/usr/bin").get_files
+        dupe=0
+                if local_programs.len>0 then
+            for l in local_programs
+                if program.name==l.split("/")[l.split("/").len-1] then dupe=1
+            end for
+        end if
+        if program.name.split("\.").len>1 and program.name.split("\.")[1]=="exe" and dupe==0 then local_programs.push(program.path)
+    end for
+    opt=cor.menu(local_programs)
+    if not shell.host_computer.File(opt) then bio.hardware_server.scp(opt,"/usr/bin",shell)
+    shell.launch(opt)
+    bat.run
+end function
+cus.programs.light={"name":"light","desc":"Show all Folders and Files on the system","type":"live","usg":"XXX","req":"file"}
+cus.programs.light.run=function(params=[])
+    file_obj=cor.req("file",bat.cur_obj)
+    while file_obj.name!="/"
+        file_obj=file_obj.parent
+    end while
+    color = {};color.u="<u>";color.white = "<color=#FFFFFF>";color.grey = "<color=#A5A5A5>";color.blue = "<color=#003AFF>";color.cyan = "<color=#00FFE7>";color.purple = "<color=#D700FF>";color.red = "<color=#AA0000>";color.yellow = "<color=#FBFF00>";color.orange = "<color=#FF8701>";color.green = "<color=#00ED03>";color.fill = "><> ><> ><> ><> ><> ><> ><> ><> ><> ><> ><> ><>";color.cap = "</color>";title = "<color=#00FFE7>[<b>SeaShell</b>]</color> ";init = "<color=#00ED03><b>init:</b></color> ";error = "<color=#AA0000><b>Error:</b></color> ";warning = "<color=#FF8701><b>Warning:</b></color> ";color.rainbow = color.red+"R"+color.cap+color.orange+"A"+color.cap+color.cap+color.yellow+"I"+color.cap+color.cap+color.green+"N"+color.cap+color.cap+color.cyan+"B"+color.cap+color.cap+color.blue+"O"+color.cap+color.cap+color.purple+"W"+color.cap;
+    format = function(text, fillLastRow=false);text = text.replace("\\\\",char(20000)).replace("\\<",char(20001)).replace("\\>",char(20002)).replace("\\ ",char(20003)).replace("\\n",char(10));text = text.replace("<b>","<b><mspace=9.9>").replace("</b>","</mspace></b>");origList = text.split(" ");for e in origList;if e.indexOf(char(10)) isa number then;sp = e.split(char(10));origList[__e_idx] = sp[0];origList.insert(__e_idx+1,[char(10),sp[1]].join(""));__e_idx = __e_idx + 1;end if;end for;while true;start = text.indexOf("<");if typeof(start) == "null" then break;finish = text.indexOf(">",start);if typeof(finish) == "null" then break;text = [text[:start], text[finish+1:]].join("");end while;text = format_columns(text);lines = text.split(char(10));if fillLastRow then text = [text," "*(lines[0].len-lines[-1].len-1)].join("");newList = text.split(" ");i = 0;for item in newList;if item != "" then;newList[__item_idx] = "";while i < origList.len and origList[i] == "";i = i + 1;end while;else;continue;end if;newList[__item_idx] = origList[i];i = i + 1;end for;return newList.join(" ").replace(char(20000),"\").replace(char(20001),"<").replace(char(20002),">").replace(char(20003)," ");end function
+    a={}
+    a.folders=[]
+    a.files=[]
+    a.write=[]
+    a.read=[]
+    a.run=[]
+    utils={}
+    clear_screen
+    utils.get_user=function(user)
+        if user=="guest" then
+            return color.white+user+color.cap+color.white
+        else if user=="root" then
+            return color.red+user+color.cap+color.white
+        else
+            return color.yellow+user+color.cap+color.white
+        end if
+    end function
+    utils.perms=function(perms)
+        if perms==1 then
+            return color.green+perms+color.cap+color.white
+        else if perms==0 then
+            return color.red+perms+color.cap+color.white
+        else
+            return color.white+perms+color.cap+color.white
+        end if
+    end function
+    check=function(folder)
+        folders=folder.get_folders
+        files=folder.get_files
+        for file in files
+            a.files.push(file)
+        end for
+        for folder in folders
+            a.folders.push(folder)
+        end for
+    end function
+    main=function(f)
+        for folder in f.get_folders
+            res=main(folder)
+            check(folder)
+            if res then return res
+        end for
+        return ""
+    end function
+    details=function
+        exts=["log","jpg","pdf","chat","bin","txt"]
+        folders=a.folders
+        files=a.files
+        a.folders=[]
+        a.files=[]
+        if folders.len>0 then
+            for folder in folders
+                detail={"object":folder,"write":0,"read":0,"run":"X","owner":folder.owner,"group":folder.group,"size":folder.size,"name":folder.name,"path":folder.path}
+                if folder.has_permission("w") then detail["write"]=1
+                if folder.has_permission("r") then detail["read"]=1
+                a.folders.push(detail)
+            end for
+        end if
+        if files.len>0 then
+            for file in files
+                detail={"object":file,"write":0,"read":0,"run":0,"owner":file.owner,"group":file.group,"size":file.size,"name":file.name,"path":file.path,"star":0}
+                if file.name.values.indexOf(".") then
+                    if exts.indexOf(file.name.split("\.")[1])!=null and file.name!="sources.txt" then detail["star"]=1
+                end if
+                if file.has_permission("w") then detail["write"]=1
+                if file.has_permission("r") then detail["read"]=1
+                if file.has_permission("x") then detail["run"]=1
+                if file.is_binary==0 then detail["run"]="X"
+                a.files.push(detail)
+            end for
+        end if
+    end function
+    display=function
+        print color.white+"FOLDERS:"
+        data=color.white+"<u>Path R:W:X Owner Group Size</u>"
+        for i in a.folders
+            i.owner=utils.get_user(i.owner)
+            i.group=utils.get_user(i.group)
+            i.read=utils.perms(i.read)
+            i.write=utils.perms(i.write)
+            i.run=utils.perms(i.run)
+            data=data+char(10)+color.white+i.path+" "+i.read+":"+i.write+":"+i.run+" "+i.owner+" "+i.group+" "+i.size
+        end for
+        print format(data)+char(10)
+        print color.white+"FILES:"
+        data=color.white+"<u>Path R:W:X Owner Group Size</u>"
+        for i in a.files
+            i.owner=utils.get_user(i.owner)
+            i.group=utils.get_user(i.group)
+            i.read=utils.perms(i.read)
+            i.write=utils.perms(i.write)
+            i.run=utils.perms(i.run)
+            if i.star==1 then 
+                data=data+char(10)+color.yellow+"**"+color.white+i.path+" "+i.read+":"+i.write+":"+i.run+" "+i.owner+" "+i.group+" "+i.size
+            else
+                data=data+char(10)+color.white+i.path+" "+i.read+":"+i.write+":"+i.run+" "+i.owner+" "+i.group+" "+i.size
+            end if
+        end for
+        print format(data)
+    end function
+        a.folders.push(file_obj)
+    for f in file_obj.get_folders
+        a.folders.push(f)
+    end for
+    main(file_obj)
+    if bio.light_mode=="pass" then 
+        return(a.files)
+    else
+        details
+        display
     end if
 end function
