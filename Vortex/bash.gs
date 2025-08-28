@@ -6,8 +6,8 @@ import_code("/bin/programs.src") // override=imports/custom.src
 
 
 bat={"cur_obj":get_shell,"cd":0,"path":current_path,"version":"Vortex Concept Build","debug":0,"usr":active_user,"object_history":[{"type":"shell","public_ip":get_shell.host_computer.public_ip,"local_ip":get_shell.host_computer.local_ip,"user":active_user,"object":get_shell,"local_meta":null,"local_crypto":null,"local_router":null,"local_rshell":null}]}
-bat.id="OU14V61M00000008307629432504320"
-bat.build_date="2025-08-26 20:08:50"
+bat.rid="PQ7347KZ1871970809413632"
+bat.build_date="2025-08-27 20:43:05"
 
 setup=function
     et=function
@@ -92,7 +92,6 @@ setup=function
                     end if
                 else
                     print "Nodes Not Found"
-                    cor.stop
                 end if
     end function
     et

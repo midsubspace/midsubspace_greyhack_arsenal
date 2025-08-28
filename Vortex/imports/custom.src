@@ -321,3 +321,109 @@ cus.programs.light.run=function(params=[])
         display
     end if
 end function
+cus.programs.info={"name":"info","desc":"Prints system infomation","type":"live","usg":"XXX","req":"file"}
+cus.programs.info.run=function(params)
+    if bio.debug!=1 then 
+        clear_screen
+        hide=1
+    end if
+    if params.len>0 and params[0]=="-show" then hide=0
+    print "Imported "+bio.len+" Bios Function(s) and Setting(s)"
+    print "Imported "+cor.len+" Core Function(s)"
+    print "Imported "+cus.programs.len+" Custom Command(s)"
+    print "Imported "+sys.len+" Terminal Command(s)"
+    print "GUID:"+bat.rid
+    print "System Time:"+cor.get_date.month+"-"+cor.get_date.day+"-"+cor.get_date.year+" "+cor.get_date.time
+    if bio.computer.is_network_active==0 then
+        print "INTERNET STATUS: "+"Offline"
+    else
+        print "INTERNET STATUS: "+"Online"
+    end if
+    if bio.server_type=="remote" then
+        print "WAREHOUSE STATUS: "+"Remote"
+        if hide==0 then print "WareHouse IP: "+bio.remote_server.host_computer.public_ip
+        print "DATA PATH: "+bio.ram.path
+    else
+        print "SERVER STATUS: "+"Local"
+    end if
+    if typeof(bio.reshell_server)=="shell" then
+        print "GATEWAY STATUS:"+"Online"
+        if hide==0 then print "Gateway IP:"+bio.reshell_server.host_computer.public_ip
+    else
+        print "GATEWAY SERVER:"+"Offline"
+    end if
+    if typeof(bio.hardware_server)=="shell" then
+        print "HARDWARE STATUS: "+"Remote"
+        if hide==0 then print "HardWare IP: "+bio.hardware_server.host_computer.public_ip
+    else
+        print "HARDWARE STATUS: "+"Local"
+    end if
+    tor_total=0
+    if bio.computer.File(bio.ram.path+"/tor") and bio.computer.File(bio.ram.path+"/tor/nodes") then
+        if bio.computer.File(bio.ram.path+"/tor/nodes").get_content!="" then tor_total=bio.computer.File(bio.ram.path+"/tor/nodes").get_content.split(char(10)).len
+        if bio.computer.File(bio.ram.path+"/tor") and bio.computer.File(bio.ram.path+"/tor/nodes") then
+            print "Tor Nodes:"+tor_total
+        end if
+    end if
+    pwd_total=0
+    wordlists=bio.computer.File(bio.ram.path+"/wordlists")
+    if not wordlists or wordlists.get_files.len==0 then
+        pwd_total=0
+    else
+        for file in wordlists.get_files
+            for line in file.get_content.split(char(10))
+                if line!="" then pwd_total=pwd_total+1
+            end for
+        end for
+    end if
+    print "PASSWORDS LOADED: "+pwd_total
+    if bio.computer.File(bio.ram.path+"/exploits") then
+        exp_total=0
+        exploits=bio.computer.File(bio.ram.path+"/exploits")
+        if not exploits or exploits.get_folders.len==0 then
+            wait 0.1
+        else
+            for folder in exploits.get_folders
+                for file in folder.get_files
+                    for line in file.get_content.split(char(10))
+                        if line=="" then continue
+                        exp_total=exp_total+1
+                    end for
+                end for
+            end for
+        end if
+        print "Exploits Loaded in database: "+exp_total
+    end if
+    if bio.computer.File(bio.ram.path+"/email.sql") then
+        nmail_total=0
+        nmail_file=bio.computer.File(bio.ram.path+"/email.sql")
+        nmail_total=nmail_file.get_content.split(char(10)).len
+        print "Registered Email Accounts: "+nmail_total
+    end if
+    if bio.computer.File(bio.ram.path+"/server.sql") then
+        nserver_total=0
+        nservers_file=bio.computer.File(bio.ram.path+"/server.sql")
+        if not nservers_file then
+            nserver_total=0
+        else
+            nserver_total=nservers_file.get_content.split(char(10)).len
+        end if
+        print "NPC Servers: ".color("ffffff")+nserver_total.color("FBFF00")
+    end if
+    if typeof(bio.meta)=="MetaxploitLib" then
+        print "Metaxploit Status: "+bio.meta_type
+    else
+        print "Metaxploit Status: "+"Missing"
+    end if
+    if typeof(bio.crypto)=="cryptoLib" then
+        print "Crypto Status: ".color("FFFFFF")+(bio.crypto_type).color("00ED03")
+    else
+        print "Crypto Status: ".color("FFFFFF")+"Missing".color("AA0000")
+    end if
+    if bio.hackshop!="" then
+        print "HACKSHOP: ".color("FFFFFF")+"Connected".color("00ED03")
+        if hide==0 then print "HACKSHOP IP: ".color("FFFFFF")+bio.hackshop
+    else
+        print "HACKSHOP: ".color("FFFFFF")+" Disconnected".color("AA0000")
+    end if
+end function
