@@ -6,6 +6,7 @@ bio.version="Alpha 0.0"
 bio.wordbanks={"0":[]}
 bio.temp_object=null
 bio.automate_root=0
+bio.fake_meta=null
 bio.results=[]
 bio.call_home=function(ip=null,port=22,user="root",password=null,secret)
     AES128 = function(choice, key, text)
@@ -385,9 +386,11 @@ if bio.mode=="sp" then
     bio.sys_pwd="test"
     //if (get_shell.host_computer.public_ip!="56.75.84.195" and (active_user!="me" or get_shell.host_computer.get_name!="me")) then exit core.text("color","#AA0000")+"<b>CRITICAL SYSTEM ERROR: License Invalid"+char(10)+core.text("color","#FFFFFF")+"The operating system license is invalid.  System functionality will be <b>"+core.text("color","#AA0000")+"DISABLED </b>"+core.text("color","#FFFFFF")+"until a valid license is obtained."
     bio.root_pwd="test"
+    bio.master_shell=get_shell("root",bio.root_pwd)
     bio.data_sf={"ip":"55.125.249.22","port":22,"user":"root","pass":"power","secret":"ybvPzPPnWoINtkU"} //Server Information for the remote server used to store program files not need if you want to store data locally
     bio.hard_sf={"ip":"55.125.249.22","port":22,"user":"root","pass":"power","secret":"ybvPzPPnWoINtkU"}//Server Information for the remote server used to use metaxploit.so and crypto.so that way you dont't ruin your own hardware
     bio.rshell_sf={"ip":"55.125.249.22","port":22,"user":"root","pass":"power","secret":"sYDqQdLzKCbyRJP"}
+    bio.test_sf={"ip":"202.111.124.202","port":22,"user":"root","pass":"ilorando","secret":"ybvPzPPnWoINtkU"}
     bio.mail_pass="test"
     bio.bank_pass="test"
     bio.log_msg="404 Log Not Found"
@@ -401,11 +404,12 @@ else
     bio.data_sf={"ip":"178.212.87.94","port":22,"user":"root","pass":"Giness","secret":"KbrwGEMawqIBsotS"} //Server Information for the remote server used to store program files not need if you want to store data locally
     bio.hard_sf={"ip":"178.212.87.94","port":22,"user":"root","pass":"Giness","secret":"KbrwGEMawqIBsotS"}//Server Information for the remote server used to use metaxploit.so and crypto.so that way you dont't ruin your own hardware
     bio.rshell_sf={"ip":"178.212.87.94","port":22,"user":"root","pass":"Giness","secret":"KbrwGEMawqIBsotS"}
-    bio.vic_sf={"ip":"46.128.204.61","port":22,"user":"root","pass":"fredf","secret":"KbrwGEMawqIBsotS"}
+    bio.test_sf={"ip":"46.128.204.61","port":22,"user":"root","pass":"fredf","secret":"KbrwGEMawqIBsotS"}
     bio.mail_pass=""
     bio.bank_pass=""
     bio.root_pwd=""
+    bio.master_shell=get_shell("root",bio.root_pwd)
     bio.protected=[]
-    bio.exp_date={"month":"Jul","day":22,"year":2024}
-    bio.hackshop="44.118.225.232"
+    bio.exp_date={"month":"Jul","day":22,"year":2025}//30 days in game is 2 days irl
+    bio.hackshop=""
 end if

@@ -25,11 +25,26 @@ cus.local_libs=function(shell=null)//Grabs local libs from a given shell object
             for item in bat.object_history
                 if item["public_ip"]==shell.host_computer.public_ip and item["local_ip"]==shell.host_computer.local_ip and item["user"]==cor.user(shell) then
                     item["local_meta"]=get_custom_object["local_meta"]
-                    if typeof(item["local_meta"])!="MetaxploitLib" then;print("Failed Getting Local Meta");else;print "Got Local Meta";end if
+                    if typeof(item["local_meta"])!="MetaxploitLib" then
+                        print("Failed Getting Local Meta")
+                    else
+                        print "Got Local Meta"
+                        bio.local_meta=item["local_meta"]
+                    end if
                     item["local_crypto"]=get_custom_object["local_crypto"]
-                    if typeof(item["local_crypto"])!="cryptoLib" then;print("Failed Getting Local Cypto");else;print "Got Local Cypto";end if
+                    if typeof(item["local_crypto"])!="cryptoLib" then
+                        print("Failed Getting Local Cypto")
+                    else
+                        print "Got Local Cypto"
+                        bio.local_crypto=item["local_crypto"]
+                    end if
                     item["local_router"]=get_custom_object["local_router"]
-                    if typeof(item["local_router"])!="router" then;print("Failed Getting Local Router");else;print "Got Local Router";end if
+                    if typeof(item["local_router"])!="router" then
+                        print("Failed Getting Local Router")
+                    else
+                        bio.local_router=item["local_router"]
+                        print "Got Local Router"
+                    end if
                     item["local_rshell"]=get_custom_object["local_rshell"]
                 end if
             end for
@@ -37,7 +52,6 @@ cus.local_libs=function(shell=null)//Grabs local libs from a given shell object
         end if
         cus.payloads("clean")
 end function
-
 cus.payloads=function(mode="create",object=null)//create payloads
     create=function(object)
         if object==null then object=bat.cur_obj
@@ -99,7 +113,102 @@ cus.payloads=function(mode="create",object=null)//create payloads
         clean(object)
     end if
 end function
-
+cus.shared_exploit_DB=function(mode="load",mlib=null,m=null,value=null)//TODO test
+    bio.computer.create_folder(bio.ram.path,"exploits")
+    DB_dir=bio.computer.File(bio.ram.path+"/exploits")
+    if not DB_dir then bio.computer.create_folder(bio.ram.path,"exploits")
+    DB_dir=bio.computer.File(bio.ram.path+"/exploits")
+    if mode=="save" then
+        fldm=0
+        flim=0
+        for folder in DB_dir.get_folders
+            wait 0.1
+            if folder.name==mlib.lib_name then
+                fldm=1
+                for file in folder.get_files
+                    if file.name==mlib.version then
+                        flim=1
+                        if file.get_content=="" then
+                            file.set_content(m+":"+value)
+                        else if file.get_content.split(char(10)).indexOf(m+":"+value)==null then
+                            file.set_content(file.get_content+char(10)+m+":"+value)
+                        end if
+                    end if
+                    wait 0.1
+                end for
+            end if
+        end for
+        if fldm==0 then bio.computer.create_folder(DB_dir.path,mlib.lib_name)
+        if flim==0 then 
+            bio.computer.touch(DB_dir.path+"/"+mlib.lib_name,mlib.version)
+            file=bio.computer.File(DB_dir.path+"/"+mlib.lib_name+"/"+mlib.version)
+            file.set_content(m+":"+value)
+        end if
+    else
+        fldm=0
+        flim=0
+        found=[]
+        for folder in DB_dir.get_folders
+            if mlib==null then return
+            if folder.name==mlib.lib_name then
+                fldm=1
+                for file in folder.get_files
+                    if file.name==mlib.version then
+                        flim=1
+                        lines=file.get_content.split(char(10))
+                        for line in lines
+                            if line=="" then continue
+                            if line.split(":").len!=2 then continue
+                            found.push(line)
+                        end for
+                    end if
+                    if bio.mode=="mp" then wait 0.1
+                end for
+            end if
+        end for
+        return found
+    end if
+end function
+cus.shared_hack=function(mlib=null,third="$",metaxploit=null)//TODO test
+    if metaxploit==null then metaxploit=bio.meta
+    found=cus.shared_exploit_DB("load",mlib)
+    if not found or found ==[""] then 
+        mem=metaxploit.scan(mlib)
+        for m in mem
+            add=metaxploit.scan_address(mlib,m).split("Unsafe check: ")
+            for a in add
+                if a==add[0] then continue
+                value=a[a.indexOf("<b>")+3:a.indexOf("</b>")]
+                value=value.replace(char(10),"")
+                wait 0.1
+                if bio.debug==1 then print "m:"+m+"-"+"value:"+value
+                cus.shared_exploit_DB("save",mlib,m,value)
+                result=mlib.overflow(m,value,third)
+                if result and typeof(result)!="null" then bio.results.push(result)
+            end for
+        end for
+    else
+        for f in found
+            m=f.split(":")[0]
+            value=f.split(":")[1]
+            result=mlib.overflow(m,value,third)
+            if result and typeof(result)!="null" then bio.results.push(result)
+        end for
+    end if
+end function
+cus.shared_wordlist=function//TODO test
+   bio.wordbanks["0"]=[]
+    if not bio.computer.File(bio.ram.path+"/wordlists") then
+        bio.computer.create_folder(bio.ram.path,"wordlists")
+        bio.computer.touch(bio.ram.path+"/wordlists","wordlist0")
+    end if
+    files=bio.computer.File(bio.ram.path+"/wordlists").get_files
+    for file in files
+        for word in file.get_content.split(char(10))
+           bio.wordbanks["0"].push(word)
+        end for
+    end for
+end function
 cus.programs.logs={"name":"logs","desc":"Clears the logs of a system if ran as Root","type":"live","usg":"XXX","req":"file"}
 cus.programs.logs.run=function(object=null)
     objects=["file","shell","computer","number"]
@@ -161,15 +270,124 @@ cus.programs.logs.run=function(object=null)
     end if
 end function
 
+cus.programs.info={"name":"info","desc":"Prints system infomation","type":"live","usg":"XXX","req":"file"}
+cus.programs.info.run=function(params)
+    if bio.debug!=1 then 
+        clear_screen
+        hide=1
+    end if
+    if params.len>0 and params[0]=="-show" then hide=0
+    print "Imported ".color("#ffffff")+bio.len+" Bios Function(s) and Setting(s)"
+    print "Imported ".color("#ffffff")+cor.len+" Core Function(s)"
+    print "Imported ".color("#ffffff")+cus.programs.len+" Custom Command(s)"
+    print "Imported ".color("#ffffff")+sys.len+" Terminal Command(s)"
+    print "GUID:".color("#ffffff")+bat.rid
+    print "System Time:".color("#ffffff")+cor.get_date.month+"-"+cor.get_date.day+"-"+cor.get_date.year+" "+cor.get_date.time
+    print char(10)
+    if bio.computer.is_network_active==0 then
+        print "INTERNET STATUS: ".color("#ffffff")+"Offline".color("#ff0000")
+    else
+        print "INTERNET STATUS: ".color("#ffffff")+"Online".color("#00ff00")
+    end if
+    if bio.server_type=="remote" then
+        print "WAREHOUSE STATUS: ".color("#ffffff")+"Remote".color("#FBFF00")
+        if hide==0 then print "WareHouse IP: ".color("#ffffff")+(bio.remote_server.host_computer.public_ip).color("#FBFF00")
+        print "DATA PATH: ".color("#ffffff")+bio.ram.path.color("#FBFF00")
+    else
+        print "SERVER STATUS: ".color("#ffffff")+"Local".color("#FBFF00")
+    end if
+    if typeof(bio.reshell_server)=="shell" then
+        print "GATEWAY STATUS:".color("#ffffff")+"Online".color("#00ff00")
+        if hide==0 then print "Gateway IP:".color("#ffffff")+bio.reshell_server.host_computer.public_ip.color("#FBFF00")
+    else
+        print "GATEWAY SERVER:".color("#ffffff")+"Offline".color("#ff0000")
+    end if
+    if typeof(bio.hardware_server)=="shell" then
+        print "HARDWARE STATUS: ".color("#ffffff")+"Remote".color("#FBFF00")
+        if hide==0 then print "HardWare IP: "+bio.hardware_server.host_computer.public_ip
+    else
+        print "HARDWARE STATUS: ".color("#ffffff")+"Local".color("#FBFF00")
+    end if
+    tor_total=0
+    if bio.computer.File(bio.ram.path+"/tor") and bio.computer.File(bio.ram.path+"/tor/nodes") then
+        if bio.computer.File(bio.ram.path+"/tor/nodes").get_content!="" then tor_total=bio.computer.File(bio.ram.path+"/tor/nodes").get_content.split(char(10)).len
+        if bio.computer.File(bio.ram.path+"/tor") and bio.computer.File(bio.ram.path+"/tor/nodes") then
+            print "Tor Nodes:".color("#ffffff")+str(tor_total).color("#FBFF00")
+        end if
+    end if
+    pwd_total=0
+    wordlists=bio.computer.File(bio.ram.path+"/wordlists")
+    if not wordlists or wordlists.get_files.len==0 then
+        pwd_total=0
+    else
+        for file in wordlists.get_files
+            for line in file.get_content.split(char(10))
+                if line!="" then pwd_total=pwd_total+1
+            end for
+        end for
+    end if
+    print "PASSWORDS LOADED: ".color("#ffffff")+str(pwd_total).color("#FBFF00")
+    if bio.computer.File(bio.ram.path+"/exploits") then
+        exp_total=0
+        exploits=bio.computer.File(bio.ram.path+"/exploits")
+        if not exploits or exploits.get_folders.len==0 then
+            wait 0.1
+        else
+            for folder in exploits.get_folders
+                for file in folder.get_files
+                    for line in file.get_content.split(char(10))
+                        if line=="" then continue
+                        exp_total=exp_total+1
+                    end for
+                end for
+            end for
+        end if
+        print "Exploits Loaded in database: ".color("#ffffff")+str(exp_total).color("#FBFF00")
+    end if
+    if bio.computer.File(bio.ram.path+"/email.sql") then
+        nmail_total=0
+        nmail_file=bio.computer.File(bio.ram.path+"/email.sql")
+        nmail_total=nmail_file.get_content.split(char(10)).len
+        print "Registered Email Accounts: ".color("#ffffff")+str(nmail_total).color("#FBFF00")
+    end if
+    if bio.computer.File(bio.ram.path+"/server.sql") then
+        nserver_total=0
+        nservers_file=bio.computer.File(bio.ram.path+"/server.sql")
+        if not nservers_file then
+            nserver_total=0
+        else
+            nserver_total=nservers_file.get_content.split(char(10)).len
+        end if
+        print "NPC Servers: ".color("#ffffff")+str(nserver_total).color("#FBFF00")
+    end if
+    if typeof(bio.meta)=="MetaxploitLib" then
+        print "Metaxploit Status: ".color("#FFFFFF")+bio.meta_type.color("#FBFF00")
+    else
+        print "Metaxploit Status: ".color("#FFFFFF")+"Missing".color("#AA0000")
+    end if
+    if typeof(bio.crypto)=="cryptoLib" then
+        print "Crypto Status: ".color("#FFFFFF")+(bio.crypto_type).color("#FBFF00")
+    else
+        print "Crypto Status: ".color("#FFFFFF")+"Missing".color("#AA0000")
+    end if
+    if bio.hackshop!="" then
+        print "HACKSHOP: ".color("#FFFFFF")+"Connected".color("#00ED03")
+        if hide==0 then print "HACKSHOP IP: ".color("#FFFFFF")+bio.hackshop
+    else
+        print "HACKSHOP: ".color("#FFFFFF")+" Disconnected".color("#AA0000")
+    end if
+end function
 cus.programs.elaunch={"name":"elaunch","desc":"Launch EXE's","type":"live","usg":"XXX","req":"shell"}
 cus.programs.elaunch.run=function(params)//TODO allow lowercase of program names
     shell=cor.req("shell",bat.cur_obj)
     if params.len>0 then
-        if shell.host_computer.File("/usr/bin"+params[0]+".exe") then
-            if params[0]=="browser" and params.len==2 then
+        if shell.host_computer.File("/usr/bin/"+params[0]) then
+            if params.len==2 then
                 shell.launch("/usr/bin/"+params[0],params[1])
+                bat.run
             else
-                shell.launch("/usr/bin/"+params[0]+".exe")
+                shell.launch("/usr/bin/"+params[0])
+                bat.run
             end if
             bat.run
         end if
@@ -321,109 +539,1841 @@ cus.programs.light.run=function(params=[])
         display
     end if
 end function
-cus.programs.info={"name":"info","desc":"Prints system infomation","type":"live","usg":"XXX","req":"file"}
-cus.programs.info.run=function(params)
-    if bio.debug!=1 then 
-        clear_screen
-        hide=1
-    end if
-    if params.len>0 and params[0]=="-show" then hide=0
-    print "Imported "+bio.len+" Bios Function(s) and Setting(s)"
-    print "Imported "+cor.len+" Core Function(s)"
-    print "Imported "+cus.programs.len+" Custom Command(s)"
-    print "Imported "+sys.len+" Terminal Command(s)"
-    print "GUID:"+bat.rid
-    print "System Time:"+cor.get_date.month+"-"+cor.get_date.day+"-"+cor.get_date.year+" "+cor.get_date.time
-    if bio.computer.is_network_active==0 then
-        print "INTERNET STATUS: "+"Offline"
-    else
-        print "INTERNET STATUS: "+"Online"
-    end if
-    if bio.server_type=="remote" then
-        print "WAREHOUSE STATUS: "+"Remote"
-        if hide==0 then print "WareHouse IP: "+bio.remote_server.host_computer.public_ip
-        print "DATA PATH: "+bio.ram.path
-    else
-        print "SERVER STATUS: "+"Local"
-    end if
-    if typeof(bio.reshell_server)=="shell" then
-        print "GATEWAY STATUS:"+"Online"
-        if hide==0 then print "Gateway IP:"+bio.reshell_server.host_computer.public_ip
-    else
-        print "GATEWAY SERVER:"+"Offline"
-    end if
-    if typeof(bio.hardware_server)=="shell" then
-        print "HARDWARE STATUS: "+"Remote"
-        if hide==0 then print "HardWare IP: "+bio.hardware_server.host_computer.public_ip
-    else
-        print "HARDWARE STATUS: "+"Local"
-    end if
-    tor_total=0
-    if bio.computer.File(bio.ram.path+"/tor") and bio.computer.File(bio.ram.path+"/tor/nodes") then
-        if bio.computer.File(bio.ram.path+"/tor/nodes").get_content!="" then tor_total=bio.computer.File(bio.ram.path+"/tor/nodes").get_content.split(char(10)).len
-        if bio.computer.File(bio.ram.path+"/tor") and bio.computer.File(bio.ram.path+"/tor/nodes") then
-            print "Tor Nodes:"+tor_total
+cus.programs.dock={"name":"dock","desc":"Connects to Vortex Network","type":"live","usg":"XXX","req":"file"}
+cus.programs.dock.run=function(params)
+    prompt="Please enter the server hostname or IP address to connect:"+char(10)
+    server=user_input(prompt+">",true).lower
+    if server=="main" then
+        server_shell=bio.hardware_server
+        if typeof(server_shell) =="shell" then
+            cus.programs.logs.run(server_shell)
+            cus.programs.logs.run(bio.master_shell)
+            bat.cur_obj=server_shell
+            bat.usr="root"
+            bat.path="/root"
+            bat.run
+        end if
+    else if server=="test" then
+        server_shell=bio.test_server
+        if typeof(server_shell) then
+            bat.cur_obj=server_shell
+            bat.usr="root"
+            bat.run
         end if
     end if
-    pwd_total=0
-    wordlists=bio.computer.File(bio.ram.path+"/wordlists")
-    if not wordlists or wordlists.get_files.len==0 then
-        pwd_total=0
+end function
+cus.programs.find={"name":"find","desc":"Find Files and Folders on a system","type":"dev","usg":"Search_Term","req":"file"}
+cus.programs.find.run=function(params)
+    if params.len==2 then
+        term=params[0]
+        mode=params[1]
+    else if params.len==1 then
+        term=params[0]
+        mode=0
     else
-        for file in wordlists.get_files
-            for line in file.get_content.split(char(10))
-                if line!="" then pwd_total=pwd_total+1
-            end for
-        end for
+        sys.man.run(["find"])
+        bat.run
     end if
-    print "PASSWORDS LOADED: "+pwd_total
-    if bio.computer.File(bio.ram.path+"/exploits") then
-        exp_total=0
-        exploits=bio.computer.File(bio.ram.path+"/exploits")
-        if not exploits or exploits.get_folders.len==0 then
-            wait 0.1
+    metalibs={}
+    cryptolibs={}
+    rshell_libs={}
+    found_files=[]
+    found_folders=[]
+    search_files=function(folder,term)
+        for file in folder.get_files
+            if term=="crypto" or term=="metaxploit" or term=="librshell" then
+                if file.path.split("/").pop.split("\.")[0]==term then
+                    found_files.push(file.path)
+                end if
+            else
+                if file.name==term then 
+                    found_files.push(file.path)
+                end if
+            end if
+        end for
+    end function
+    search_folders=function(folder,term)
+        for folder in folder.get_folders          
+            if folder.name==term then
+                found_folders.push(folder.path)
+            end if
+            search_files(folder,term)
+            search_folders(folder,term)
+        end for
+    end function
+    search_folders(get_shell.host_computer.File("/"),term)
+    if (mode==1 and (term=="metaxploit" or term=="crypto" or term=="librshell")) then
+        if  found_files.len!=0 then
+            return(true)
         else
-            for folder in exploits.get_folders
-                for file in folder.get_files
-                    for line in file.get_content.split(char(10))
-                        if line=="" then continue
-                        exp_total=exp_total+1
+            return(false)
+        end if
+    end if
+    if term=="metaxploit" and found_files.len!=0 then
+        for file in found_files
+            if metalibs.indexOf(file)==null then
+                meta_path=file
+                meta=include_lib(file)
+                version=meta.load(file).version
+                metalibs[file]=version
+            end if
+        end for
+        for meta in metalibs
+            metalibs[meta.key]=meta.value.replace("\.", "").to_int
+        end for
+        highest=""
+        vote=0
+        for item in metalibs
+            if item.value>vote then
+                vote=item.value
+                winner=item.key
+            end if
+        end for
+        return(winner)
+    end if
+    if term=="crypto" and typeof(bio.meta)=="MetaxploitLib" then
+        for file in found_files
+            if cryptolibs.indexOf(file)==null then
+                crypto_path=file
+                crypto=include_lib(file)
+                version=bio.meta.load(file).version
+                cryptolibs[file]=version
+            end if
+        end for
+        for crypto in cryptolibs
+            cryptolibs[crypto.key]=crypto.value.replace("\.", "").to_int
+        end for
+        highest=""
+        vote=0
+        for item in cryptolibs
+            if item.value>vote then
+                vote=item.value
+                winner=item.key
+            end if
+        end for
+        return(winner)
+    else if term=="crypto" then
+        return(found_files[0])
+    end if
+    if term=="librshell" and typeof(bio.meta)=="MetaxploitLib" then
+        for file in found_files
+            if rshell_libs.indexOf(file)==null then
+                rshell_path=file
+                rshell=include_lib(file)
+                version=bio.meta.load(file).version
+                rshell_libs[file]=version
+            end if
+        end for
+        for rshell in rshell_libs
+            rshell_libs[rshell.key]=rshell.value.replace("\.", "").to_int
+        end for
+        highest=""
+        vote=0
+        for item in rshell_libs
+            if item.value>vote then
+                vote=item.value
+                winner=item.key
+            end if
+        end for
+        return(winner)
+    else if term=="librshell" then
+        return(found_files[0])
+    end if
+    if found_folders.len!=0 then
+        if found_folders.len>1 then
+            num=1
+            for folder in found_folders
+                print(num+")"+folder)
+                num=num+1
+            end for
+            choice=user_input("Pick A folder location to use:").to_int
+            while choice>found_folders.len
+                choice=user_input("Pick A folder location to use:").to_int
+            end while
+            while choice<found_folders.len
+                choice=user_input("Pick A folder location to use:").to_int
+            end while
+            return(found_folders[choice-1])
+        else
+            return(found_folders[0])
+        end if
+    end if
+    if found_files.len!=0 then
+        if found_files.len>1 and term!="aptclient.so" and term!="metaxploit"  then
+            num=1
+            for file in found_files
+                print(num+")"+file)
+                num=num+1
+            end for
+            choice=user_input("Pick A folder location to use:").to_int
+            return(found_files[choice-1])
+        else
+            return(found_files[0])
+        end if
+    end if   
+end function
+cus.programs.update={"name":"update","desc":"Update Libs","type":"live","usg":"XXX","req":"file"}
+cus.programs.update.run=function(params)
+    if params.len==2 then
+        mode=params[0]
+        location=params[1]
+    else if params.len==1 then
+        mode=params[0]
+        location=null
+    else
+        mode="local"
+        location=null
+    end if
+    r=get_shell.host_computer.create_folder(current_path, "lib")
+    bio.server.scp("/root/lib/aptclient.so",current_path+"/lib",get_shell)
+    aptlib=include_lib(cus.programs.find.run(["aptclient.so"]))
+    if bio.hackshop==null then cus.programs.find.run(1)
+    result=aptlib.add_repo(bio.hackshop)
+    if result == "" then
+        print "Added Request HackShop Repo!"
+    else if result.split(" ").indexOf("already")==null then
+        cor.exit_err("Error while adding: ",result)
+    end if
+    result=aptlib.update
+    if result == "" then
+        print "Update successful!"
+    else
+        cor.exit_err("update: Error while updating: ",result)
+    end if
+    if bio.debug==1 then aptlib.update
+    package_list = ["metaxploit.so", "crypto.so","librshell.so","AdminMonitor.exe"]
+    if mode!="server" then
+        if location==null then 
+            location=current_path
+        else
+            location=cus.dropzone.path
+        end if
+        computer=get_shell.host_computer
+        if bio.debug==1 then print "Local Mode"
+        for package in package_list
+            r=computer.create_folder(location, "lib")
+            if typeof(r) == "string" and bio.debug==1 then
+                print("There was an error when creating the folder: " + r)
+            else if bio.debug==1 then
+                print("Folder got created")
+            end if
+            lib_folder = location + "/lib"
+            if package=="AdminMonitor.exe" then 
+                result=aptlib.install(package,"/home/"+active_user+"/Desktop")
+                if result == 1 then
+                    r=bio.master_shell.host_computer.File("/home/"+active_user+"/Desktop/"+package).chmod("o+x")
+                    if typeof(r)=="string" and r!="" then cor.exit_err("update: adminmonitor o failed to chmod: ",r)
+                    r=bio.master_shell.host_computer.File("/home/"+active_user+"/Desktop/"+package).chmod("u+x")
+                    if typeof(r)=="string" and r!="" then cor.exit_err("update: adminmonitor u failed to chmod: ",r)
+                    r=bio.master_shell.host_computer.File("/home/"+active_user+"/Desktop/"+package).chmod("g+x")
+                    if typeof(r)=="string" and r!="" then cor.exit_err("update: adminmonitor g failed to chmod: ",r)
+                    print "Installed "+package+" successful!"
+                else
+                    cor.exit_err("Update: Error while installing: ",result)
+                end if
+                continue
+            end if
+            if computer.File(lib_folder + "/" + package) == null then
+                result=aptlib.install(package, lib_folder)
+                if result == 1 then
+                    print "Installed "+package+" successful!"
+                else
+                    cor.exit_err("Update: Error while installing: ",result)
+                end if
+                if bio.meta == null and cus.programs.find.run("metaxploit",1)==true then
+                    bio.meta = include_lib(cus.programs.find.run("metaxploit",0))
+                end if
+                if bio.crypto == null and cus.programs.find.run("crypto",1)==true then
+                    bio.crypto = include_lib(cus.programs.find.run("crypto",0))
+                end if
+            else if aptlib.check_upgrade(lib_folder + "/" + package) == 1 then
+                aptlib.install(package, lib_folder)
+                if bio.debug==1 then print ("Upgraded "+package).color("#AA0000")
+                if bio.meta == null and cus.programs.find.run("metaxploit",1)==true then
+                    bio.meta = include_lib(cus.programs.find.run("metaxploit",0))
+                end if
+                if bio.crypto == null and cus.programs.find.run("crypto",1)==true then
+                    bio.crypto = include_lib(cus.programs.find.run("crypto",0))
+                end if
+            else
+                if bio.debug==1 then print("No Updates for " + package)
+            end if
+        end for
+    else
+        bio.hardware_server.launch("/root/getlibs")
+        if bio.debug==1 then  print("Updated Server Libs")
+    end if
+end function
+cus.programs.nmap={"name":"nmap","desc":"Scans the Ports On A Network","type":"live","usg":"IP","req":"file"}
+cus.programs.nmap.run=function(params)
+    if params.len!=1 then
+        if typeof(bat.cur_obj)=="shell" then
+            params.push(bat.cur_obj.host_computer.public_ip)
+        else if typeof(bat.cur_obj)=="computer" then
+            params.push(bat.cur_obj.public_ip)
+        else
+            bat.run
+        end if
+    end if
+    ip=params[0]
+    if ip=="self" then
+        if typeof(bat.cur_obj)=="shell" then 
+            ip=bat.cur_obj.host_computer.local_ip
+        else if typeof(bat.cur_obj)=="computer" then
+            ip=bat.cur_obj.local_ip
+        else
+            ip=params[0]
+        end if
+    else if ip=="parent" then
+        if typeof(bat.cur_obj)=="shell" then
+            ip=bat.cur_obj.host_computer.local_ip
+            ip=ip.split("\.")
+            ip.pop
+            ip.push("1")
+            ip=ip.join(".")
+        else if typeof(bat.cur_obj)=="computer" then
+            ip=bat.cur_obj.public_ip
+        else
+            ip=params[0]
+        end if
+    end if
+    if not is_valid_ip(ip) then ip=nslookup(ip)
+    if not is_valid_ip(ip) then cor.exit_err("nmap:Given Address:"+params[0]+" Is not valid!")
+    if is_lan_ip(ip) then
+        cus.local_libs(bat.cur_obj)
+        router=bio["local_router"]
+    else
+        router=get_router(ip)
+    end if
+    if router==null then cor.exit_err("nmap:Router Does Not Exist On "+params[0])
+    if is_lan_ip(ip) then
+        ports=router.device_ports(ip)
+    else
+        ports=router.used_ports
+    end if
+    if ports==null then cor.exit_err("nmap: No Ports Found On "+params[0])
+    if typeof(ports)=="string" then cor.exit_err("nmap:Error Getting Ports: ",ports)
+    if ports.len==0 then print "nmap: Scan Finished, No Open Ports Found"+char(10)+"You can only hack port 0"
+    firewall_map=function(ip)
+        firewalls=router.firewall_rules
+        rules={}
+        n=0
+        if firewalls.len>0 then
+            print "Firewalls on: "+ip.color("#AA0000")
+            data="ACTION PORT SOURCE DESTINATION".color("#FFFFFF")
+            while firewalls.len>0
+                rules[n]=firewalls.pop
+                n=n+1
+            end while
+            n=0
+            while rules.len!=0
+                t=rules[n]
+                fire=t.split(" ")
+                if fire[0]=="ALLOW" then
+                    fire.remove(0)
+                    fire.reverse
+                    fire.push("ALLOW")
+                    fire.reverse
+                    action = fire[0]
+                    port = fire[1]
+                    source = fire[2]
+                    going = fire[3]
+                    data=data+char(10)+action.color("#00ED03")+" "+port.color("#00ED03")+" "+source.color("#00ED03")+" "+going.color("#00ED03")
+                else if fire[0]=="DENY" then
+                    fire.remove(0)
+                    fire.reverse
+                    fire.push("DENY")
+                    fire.reverse
+                    action = fire[0]
+                    port = fire[1]
+                    source = fire[2]
+                    going = fire[3]
+                    data=data+char(10)+action.color("#AA0000")+" "+port.color("#AA0000")+" "+source.color("#AA0000")+" "+going.color("#AA0000")
+                end if
+                rules.remove(n)
+                n=n+1
+            end while
+            print cor.format(data)
+        end if
+        //wait 0.1
+    end function
+    placeholder="placeholder"
+    data="PORT SERVICE STATUS VERSION LAN".color("#FFFFFF")
+    print("ESSID: ".color("#FFFFFF") + router.essid_name.color("#FBFF00")+"(" + router.bssid_name.color("#FBFF00") + ")")
+    print("Public IP:<b> ".color("#FFFFFF")+router.public_ip.color("#FBFF00")+"</b> Private IP: <b>".color("#FFFFFF")+router.local_ip.color("#FBFF00")+"</b>")
+    whois=whois(router.public_ip).split(char(10))
+    for line in whois
+        if line=="[Neurobox Network]" then
+            print line.color("#FFFFFF")
+            continue
+        end if
+        print line.split(":")[0].color("#FFFFFF")+":"+line.split(":")[1].color("#FBFF00")
+    end for
+    print("Kernel_Router.so Version: ".color("#FFFFFF")+router.kernel_version.color("#FBFF00"))
+    for port in ports
+        service = router.port_info(port)
+        service_name = service.split(" ")[0]
+        if service_name == "students" or service_name == "employees" or service_name == "police" then service_name = "sql"
+        service_version = service.split(" ")[1]
+        service = service.split(" ")
+        port_status = "OPEN".color("#00ED03")
+        if ((port.is_closed) and not is_lan_ip(ip)) then port_status = "CLOSED".color("#AA0000")
+        data = data + char(10) + port.port_number + " " + service[0] + " " + port_status + " " + service[1] + " " + port.get_lan_ip
+    end for
+    firewall_map(ip)
+    bio.computer.create_folder(bio.ram.path,"ip_logs")
+    bio.computer.touch(bio.ram.path+"/ip_logs", "nmap")
+    nmap_log=bio.computer.File(bio.ram.path + "/ip_logs/nmap")
+    lines=nmap_log.get_content.split(char(10))
+    if nmap_log.get_content=="" then
+        nmap_log.set_content(ip)
+    else if lines.indexOf(ip)==null then
+        nmap_log.set_content(nmap_log.get_content + (char(10)) + ip)
+    end if
+    print(char(10) + cor.format(data))
+    return(ip)
+end function
+cus.programs.ip={"name":"ip","desc":"Generates a Random IP","type":"live","usg":"mode[*] num_of_ports[*]","req":"file"}
+cus.programs.ip.run=function(params)
+    mode="gen"
+    if params.len==1 then
+        mode=params[0]
+    else
+        mode="nmap"
+    end if
+    ip_gen=function
+        ip=[floor((rnd*256)),floor((rnd*256)),floor((rnd*256)),floor((rnd*256))].join(".")
+        bio.computer.create_folder(bio.ram.path,"ip_logs")
+        bio.computer.touch(bio.ram.path+"/ip_logs", "ipgen")
+        ipgen_log=bio.computer.File(bio.ram.path + "/ip_logs/ipgen")
+        lines=ipgen_log.get_content.split(char(10))
+        for line in lines
+            if line==ip then ip_gen
+        end for
+        return ip
+    end function
+    ip=ip_gen
+    while not is_valid_ip(ip)
+        ip=ip_gen
+        if bio.mode=="mp" then wait 0.1
+    end while
+    router=get_router(ip)
+    while router==null or typeof(router)==null or whois(ip)=="Address not found!"
+        ip=ip_gen
+        router=get_router(ip)
+        if bio.mode=="mp" then wait 0.1
+    end while
+    ipgen_log=bio.computer.File(bio.ram.path + "/ip_logs/ipgen")
+    lines=ipgen_log.get_content.split(char(10))
+    if ipgen_log.get_content=="" then
+        ipgen_log.set_content(ip)
+    else if lines.indexOf(ip)==null then
+        ipgen_log.set_content(ipgen_log.get_content + (char(10)) + ip)
+    end if
+    if mode=="gen" then
+        return ip
+    else if mode=="nmap" then 
+        cus.programs.nmap.run([ip])
+    else if mode=="hack" then
+        cus.programs.hack.run([ip])
+    else
+        return ip
+    end if
+end function
+cus.programs.wipe={"name":"wipe","desc":"Corrupts a system","type":"live","usg":"XXX","req":"computer"}
+cus.programs.wipe.run=function(params)
+    computer=cor.req("computer",bat.cur_obj)
+    if computer.public_ip==bio.remote_server.host_computer.public_ip or computer.public_ip==bio.hardware_server.host_computer.public_ip or computer.public_ip==get_shell.host_computer.public_ip then cor.exit_err("You Are Trying To Use Commands On  A Protected System!")
+    if computer.File("/boot") and computer.File("/boot").has_permission("w") then
+                art="                                                    
+                                                         c=====e
+                                                            H
+   ____________                                         _,,_H__
+  (__((__((___()                                       //|     |
+ (__((__((___()()_____________________________________// |ACME |
+(__((__((___()()()------------------------------------'  |TNT  |
+                                                         |_____|"
+        print art+char(10)
+        confirm = user_input("<b>=== 'F's In The Chat To Blow The TNT! ===\n{".color("#AA0000")+computer.public_ip.color("#FFFFFF")+":"+computer.local_ip.color("#FBFF00")+"}"+char(10)+"<b>** YOU CANNOT UNDO THIS **".color("#FF8701")+char(10)+"--> ")
+        art="                                                    
+                                                         c=====e
+                                                            H
+   ____________                                         _,,_H__
+  (__((__((___()                                       //|     |
+ (__((__((___()()___________________    ______________// |ACME |
+(__((__((___()()()-------------------   --------------'  |TNT  |
+                                                         |_____|"
+        if confirm != "F" then ;clear_screen;print art+char(10);cor.exit_err("Stanislav Petrov Has Saved The World Once More!")
+            renameResult=computer.File("/boot").rename(".boot")
+            if typeof(renameResult) == "string" and renameResult!="" then
+                cor.exit_err("There was an error while renaming file: ",renameResult)
+            else
+                print("System Corrupted")
+                bat.run
+            end if
+        end if
+    end if
+end function
+cus.programs.encrypt={"name":"encrypt","desc":"Encrypts a file using a password","type":"live","usg":"XXX","req":"shell"}
+cus.programs.encrypt.run=function(params)
+    cus.local_libs(bat.cur_obj)
+    remote_crypto=bio.local_crypto
+    object=cor.req("file",bat.cur_obj)
+    if params.len==2 then 
+        pathFile=params[0]
+        pass=params[1]
+    else
+        pathFile=user_input("File to Encrypt:")
+        pass = user_input("Encryption Password:")
+    end if
+    if typeof(remote_crypto)!="cryptoLib" then
+        print "ERR: "+self.name+" Could not get local crypto got:"+typeof(remote_crypto)+":"+remote_crypto
+        user_input("SHIT Broke")
+    end if
+    temp=cor.find(object)
+    matches=[]
+    for file in temp.files
+        if file.name.lower==pathFile.lower then
+            matches.push(file)
+        end if
+    end for
+    file=cor.check_match(matches)
+    encrypt_process=remote_crypto.encrypt(file.path,pass)
+    if typeof(encrypt_process)=="string" then
+        print "ERR: "+encrypt_process
+    else
+        print "Encrypted File "+file.path+ " With Password:"+pass
+    end if
+end function
+cus.programs.decrypt={"name":"decrypt","desc":"Decrypt a file using a password","type":"live","usg":"XXX","req":"shell"}
+cus.programs.decrypt.run=function(params)
+    cus.local_libs(bat.cur_obj)
+    remote_crypto=bio.local_crypto
+    if typeof(remote_crypto)!="cryptoLib" then
+        print "ERR: "+self.name+" Could not get local crypto got:"+typeof(remote_crypto)+":"+remote_crypto
+        user_input("SHIT Broke")
+    end if
+    object=cor.req("file",bat.cur_obj)
+    if params.len==3 then 
+        pathFile=params[1]
+        pass=params[2]
+    else
+        pathFile=user_input("File to Decrypt:")
+        pass = user_input("Decryption Password:")
+    end if
+    temp=cor.find(object)
+    matches=[]
+    for file in temp.files
+        if file.name.lower==pathFile.lower then
+            matches.push(file)
+        end if
+    end for
+    file=cor.check_match(matches)
+    decrypt_process=remote_crypto.decrypt(file.path,pass)
+    if typeof(decrypt_process)=="string" then
+        print "ERR: "+decrypt_process
+    else
+        print "Decypted File "+file.path+ " With Password:"+pass
+    end if
+end function
+cus.programs.wifi={"name":"wifi","desc":"Cracks wifi networks","type":"live","usg":"XXX","req":"shell"}
+cus.programs.wifi.run=function(params)
+    shell=get_shell
+    computer=shell.host_computer
+    crypto=include_lib("/lib/crypto.so")
+    computer.File(program_path).delete
+    if active_user=="root" then
+        if computer.File("/root/file.cap") and computer.File("/root/file.cap").has_permission("w") then computer.File("/root/file.cap").delete
+    else
+        if computer.File("/home/"+active_user+"/file.cap") and computer.File("/home/"+active_user+"/file.cap").has_permission("w") then computer.File("/home/"+active_user+"/file.cap").delete
+    end if
+    if computer.active_net_card=="WIFI" then
+        interface="wlan0"
+    else
+        interface="eth0"
+    end if
+    network_list=computer.wifi_networks(interface)
+    networks=[]
+    for network in network_list
+        bssid=network.split(" ")[0]
+        pwr=network.split(" ")[1].split("%")[0].val
+        essid=network.split(" ")[2]
+        networks.push({"bssid":bssid,"pwr":pwr,"essid":essid})
+    end for
+    info="# SSID MAC Signal"
+    n=0
+    networks.sort("pwr")
+    networks.reverse
+    for network in networks
+        info=info+char(10)+n+" "+network["essid"]+" "+network["bssid"]+" "+network["pwr"]+"%"
+        n=n+1
+    end for
+    clear_screen
+    print cor.format(info)
+    option=user_input("Select Network> ").val
+    clear_screen
+    bssid=networks[option]["bssid"]
+    pwr=networks[option]["pwr"]
+    essid=networks[option]["essid"]
+    airmonResult = crypto.airmon("start",interface)
+    if typeof(airmonResult) == "string" then
+        print("There was an error while switching monitoring mode: " + airmonResult)
+    else
+        print("Monitoring mode switched successfully.")
+    end if
+    ack=300000/pwr
+    wait 3
+    clear_screen
+    print "Capturing ≈"+round(ack)+" Acks on:"+char(10)+"SSID: "+essid+char(10)+"MAC Address: "+bssid+char(10)+"Signal Strength: "+pwr+"%"
+    print char(10)
+    crypto.aireplay(bssid,essid,ack)
+    if active_user=="root" then
+        wifi_password=crypto.aircrack("/root/file.cap")
+    else
+        wifi_password=crypto.aircrack("/home/"+active_user+"/file.cap")
+    end if
+    if interface=="wlan0" then
+        connectionResult=computer.connect_wifi(interface,bssid,essid,wifi_password)
+    else
+        print("Ethernet connection")
+    end if
+    if typeof(connectionResult) == "string" then
+        print("There was an error while connecting to new Wifi: " + connectionResult)
+    else
+        print("Connected to new Wifi successfully.")
+        if active_user=="root" then
+            if computer.File("/root/file.cap") and computer.File("/root/file.cap").has_permission("w") then computer.File("/root/file.cap").delete
+        else
+            if computer.File("/home/"+active_user+"/file.cap") and computer.File("/home/"+active_user+"/file.cap").has_permission("w") then computer.File("/home/"+active_user+"/file.cap").delete
+        end if
+    end if
+end function
+cus.programs.traffic={"name":"traffic","desc":"Interface with the Traffic Cams","type":"dev","usg":"XXX","req":"shell"}
+cus.programs.traffic.run=function(params)
+end function
+cus.programs.htop={"name":"htop","desc":"Task Manager","type":"live","usg":"XXX","req":"computer"}
+cus.programs.htop.run=function(params)
+    computer=cor.req("computer",bat.cur_obj)
+    monitor=function
+        computer.create_folder("/root","cps")
+        htop_temp=computer.File("/root/cps/h")
+        if not htop_temp then computer.touch("/root/cps","h")
+        htop_temp=computer.File("/root/cps/h")
+        while cor.watch_file("/root/cps/h")==1
+            data="USER PID CPU MEM NAME".color("#FFFFFF")
+            display=computer.show_procs
+            tasks=0
+            cpu_load=0.0
+            mem_load=0.0
+            counter=0
+            for item in display.split(char(10))[1:]
+                parsedItem = item.split(" ")
+                user=parsedItem[0]
+                pid=parsedItem[1].color("##20ff98")
+                cpu=parsedItem[2].color("#21bcff")
+                cpu_load=cpu_load+parsedItem[2][:-1].val
+                mem=parsedItem[3].color("#21bcff")
+                mem_load=mem_load+parsedItem[3][:-1].val
+                command=parsedItem[4].color("#20ff98")
+                if user=="root" then
+                    user=user.color("#AA0000")
+                else if user=="guest" then
+                    user=user.color("#FFFFFF")
+                else
+                    user=user.color("#FBFF00")
+                end if
+                data=data+char(10)+user+" "+pid+" "+cpu+" "+mem+" "+command
+                tasks+=1
+            end for
+            print "Total Storage: ".color("#FFFFFF")+str(cor.find(computer.File("/")).folders.len+cor.find(computer.File("/")).files.len).color("#FBFF00")+"/"+"3,125"+"("+((cor.find(computer.File("/")).folders.len+cor.find(computer.File("/")).files.len)/3125)*100+"%)"+char(10)+"Tasks:"+tasks+" "+"CPU Usage:"+cpu_load+"%"+" "+"Memory Usage:"+mem_load+"%"+char(10)+cor.format(data),1
+            wait 1
+        end while
+        clear_screen
+        params=[]
+        bat.run
+    end function
+    monitor
+end function
+cus.programs.webhunt={"name":"webhunt","desc":"Hunts Down Networks","type":"live","usg":"mode(opt)[hackshop]","req":"file"}
+cus.programs.webhunt.run=function(params)//TODO Test
+    if params.len==1 then
+        mode=params[0]
+    else if params.len==0 then
+        mode="any"
+    else
+        cor.exit_err("webhunt: Invalid Params> ",params)
+    end if
+    counter={"ips_checked":0,"matches_found":0}
+    services=["http","ftp","ssh","smtp","repository","employees","students","criminals","router","rshell","bank_account"]
+    search=function(service,amount,version)
+        cor.stopwatch("start")
+        cor.test("Service:"+service+" Amount:"+amount.val+" Version:"+version)
+        matches=[]
+        while matches.len!=amount.val
+            ip=cus.programs.ip.run(["gen"])
+            counter.ips_checked+=1
+            if bio.debug==1 then print "Generating New Network:"+ip.color("#FFFFFF")
+            router=get_router(ip)
+            ports=router.used_ports
+            if (service=="router" and (router.kernel_version==version or version=="any")) then
+                matches.push(ip)
+                counter.matches_found+=1
+            else
+                for port in ports
+                    if (router.port_info(port).split(" ")[0]==service and (version=="any" or router.port_info(" ")[1]==version) and matches.indexOf(ip)==null) then
+                        matches.push(ip)
+                        counter.matches_found+=1
+                    end if
+                end for
+            end if
+            print("Scanned:" + counter.ips_checked + char(10)+"Matches:" + matches.len,1)
+            wait 0.1
+        end while
+        return matches
+    end function
+    if mode=="hackshop" then
+        service="repository"
+        version="any"
+        amount="1"
+        matches=search(service,amount,version)
+        cor.stopwatch("stop","to scan " + counter.ips_checked + " networks and find 1 hackshop")
+        if typeof(bio.master_shell)=="shell" then bio.master_shell.launch("/usr/bin/Browser.exe",matches[0])
+        print matches[0]
+        return matches[0]
+    else
+        amount=user_input("How Many Do You Want To Find? ")
+        service=cor.menu(services)
+        version=user_input("Version: ")
+        matches=search(service,amount,version)
+        print()
+        cor.stopwatch("stop","to scan " + counter.ips_checked + " networks and cor.find " + matches.len+" matches")
+        if user_input("Nmap all of them? y/n")=="y" then
+            for match in matches
+                cus.programs.nmap.run([match])
+                print char(10)
+            end for
+            bat.run
+        else
+            for match in matches
+                print match
+                end for
+                bat.run
+        end if
+    end if
+end function
+cus.programs.hackshop={"name":"hackshop","desc":"Generates Random Hackshop","type":"live","usg":"XXX","req":"file"}
+cus.programs.hackshop.run=function(params)
+    cus.programs.webhunt.run(["hackshop"])
+end function
+cus.programs.std={"name":"std","desc":"Infects /lib with bad libs","type":"live","usg":"XXX","req":"shell"}
+cus.programs.std.run=function(params)//TODO Test
+    cor.req("shell",bat.cur_obj)
+    cus.programs.portal.run(params)
+    if  not bat.cur_obj.host_computer.File("/lib").has_permission("w") then cor.exit_err("Must Have Write Perms for /lib!")
+    if not bio.computer.File(bio.ram.path+"/unsafe/local") then cor.exit_err("No STD's Found")
+    bad_libs=bio.computer.File(bio.ram.path+"/unsafe/local").get_files
+    for file in bad_libs
+        bio.server.scp(file.path,"/lib",bat.cur_obj)
+    end for
+end function
+cus.programs.rainbow={"name":"rainbow","desc":"Search <b><i>The Library</b></i>","type":"live","usg":"hash,ssh,ftp,mail,wifi ip user","req":"file"}
+cus.programs.rainbow.run=function(params)//TODO test
+    if params.len==5 then
+        mode=params[0]
+        ip=params[1]
+        user=params[2]
+        hash=params[3]
+        output=params[4]
+    else if params.len==4 then
+        mode=params[0]
+        ip=params[1]
+        user=params[2]
+        hash=params[3]
+        output=0
+    else if params.len==3 then
+        mode=params[0]
+        ip=params[1]
+        user=params[2]
+        hash=null
+        output=0
+    else if params.len==2 then
+        mode=params[0]
+        ip=params[1]
+        user="root"
+        hash=null
+        output=0
+    else if params.len==1 then
+        mode=params[0]
+        ip=null
+        user="root"
+        output=0
+    else
+        sys.man.run(["rainbow"])
+    end if
+    pwd_total=bio.wordbanks["0"].len
+    if mode=="mail" and ip.split("@")[0]=="" then
+        files=bio.remote_server.host_computer.File(bio.ram.path+"/userlists").get_files
+        domain=null
+        if ip!=null then user=ip
+            domain=user
+            test_account=mail_login("Notton@bottsbcvm.info","shello")
+            if test_account==null or test_account=="string" then cor.exit_err("Failed signing into test account!",test_account)
+            for file in files
+                print "Scanning "+file.name
+            end for
+            clear_screen
+            for file in files
+                print "Scanning "+file.name
+                for line in file.get_content.split(char(10))
+                    pwd_total=cus.shared_wordlist[0]
+                    if line=="" then continue
+                    for word in words
+                        user=line+domain
+                        print(pwd_total,1)
+                        test_email=mail_login(user,word)
+                        if typeof(test_email)=="MetaMail" then;print user+" : "+word;bat.run;end if
+                        pwd_total=pwd_total-1
                     end for
                 end for
             end for
+            print "Failed To cor.find user on "+domain;return
+    end if
+    for word in bio.wordbanks["0"]
+        //if mode!="ssh" then
+            if bio.mode=="mp" then
+                print(pwd_total,true)
+            else
+                print(pwd_total,true)
+            end if
+        //end if
+        if word=="" or word==" " then continue
+        if mode=="ssh" then
+            if typeof(bio.fake_server)=="shell" then
+                s=bio.fake_server.connect_service(ip,22,user,word)
+            else
+                s=get_shell.connect_service(ip,22,user,word)
+            end if
+            if typeof(s)=="shell" then
+                bat.cur_obj=s
+                cus.local_libs(bat.cur_obj)
+                bat.run
+            end if
+        else if mode=="mail" then
+            if ip!=null then user=ip
+            m=mail_login(user,word)
+            if typeof(m)=="MetaMail" then;print user+" : "+word;bat.run;end if
+        else if mode=="wifi" then
+            wifi_list=get_shell.host_computer.wifi_networks(get_shell.host_computer.network_devices.split(" ")[0].trim)[0]
+            network=wifi_list.split(" ")
+            bssid = network[0]
+            percent = network[1]
+            essid = network[2]
+            w=get_shell.host_computer.connect_wifi(get_shell.host_computer.network_devices.split(" ")[0].trim, bssid, essid,word)
+            if typeof(w) == "string" then
+                print("There was an error while connecting to new Wifi: " + w)
+            else
+                print "Connected to new Wifi successfully.";bat.run
+            end if
+        else if mode=="hash" then
+            if hash==null then hash=user_input("Hash> ")
+            if hash==md5(word) then
+                print "Match Found>"+word
+                return word
+            end if
         end if
-        print "Exploits Loaded in database: "+exp_total
-    end if
-    if bio.computer.File(bio.ram.path+"/email.sql") then
-        nmail_total=0
-        nmail_file=bio.computer.File(bio.ram.path+"/email.sql")
-        nmail_total=nmail_file.get_content.split(char(10)).len
-        print "Registered Email Accounts: "+nmail_total
-    end if
-    if bio.computer.File(bio.ram.path+"/server.sql") then
-        nserver_total=0
-        nservers_file=bio.computer.File(bio.ram.path+"/server.sql")
-        if not nservers_file then
-            nserver_total=0
+        pwd_total-=1
+    end for
+    if mode=="hash" then
+        pwd=bio.crypto.decipher(hash)  
+        if pwd!=null then
+            wordlist_folder=bio.computer.File(bio.ram.path+"/wordlists")
+            if wordlist_folder.get_files==0 then cor.exit_err("Wordlists not found")
+            for file in wordlist_folder.get_files
+                lines=file.get_content
+                words = lines.split(char(10))
+            end for
+            words = file.get_content.split(char(10))
+            word_count = []
+            for word in words
+                letters = word.len
+                num = 0
+                while num != letters
+                    word_count.push(word[num])
+                    num = num + 1
+                end while
+            end for
+            if word_count.len == 160000 then
+                num = wordlist_folder.get_files.len
+                num = num + 1
+                wordlist_file = "wordlist"+num
+                computer.touch(wordlist_folder.path, wordlist_file)
+                file = computer.File(wordlist_folder.path + "/" + wordlist_file)
+                file.set_content(file.get_content + char(10) + pwd)
+                if output==1 then print("Cracked Password> "+pwd)
+                cus.shared_wordlist
+                return pwd
+            else
+                file.set_content(file.get_content + char(10) + pwd)
+                if output==1 then print("Cracked Password> "+pwd)
+                cus.shared_wordlist
+                return pwd
+            end if
         else
-            nserver_total=nservers_file.get_content.split(char(10)).len
+            if output==1 then print("Unable to Crack Password:" + hash)
+            return null
         end if
-        print "NPC Servers: ".color("ffffff")+nserver_total.color("FBFF00")
     end if
-    if typeof(bio.meta)=="MetaxploitLib" then
-        print "Metaxploit Status: "+bio.meta_type
+    print "rainbow:Webster's Book Did Not Contain The Password!"
+    print "Mode:"+mode+" ip:"+ip+" user:"+user
+    bat.run
+end function
+cus.programs.servers={"name":"servers","desc":"Shows the Server Database","type":"live","usg":"mode(v,a) object public_ip local_ip","req":"file"}
+cus.programs.servers.run=function(params)//TODO test
+    if params.len==4 then
+        mode=params[0]
+        o=params[1]
+        public_tar=params[2]
+        local_tar=params[3]
+    else if params.len==3 then
+        mode=params[0]
+        o=params[1]
+        public_tar=params[2]
+        local_tar="*"
+    else if params.len==2 then
+        mode=params[0]
+        o=params[1]
+        public_tar="*"
+        local_tar="*"
+    else if params.len==1 then
+        mode=params[0]
+        o=bat.cur_obj
+        public_tar="*"
+        local_tar="*"
+    else if params.len==0 then
+        mode="v"
+        o=bat.cur_obj
+        public_tar="*"
+        local_tar="*"
+    end if
+    db=bio.computer.File(bio.ram.path+"/server.sql")
+    if not db then
+        bio.computer.touch(bio.ram.path,"server.sql")
+        db=bio.computer.File(bio.ram.path+"/server.sql")
+    end if
+    if db.get_content!="" then
+        lines=db.get_content.split(char(10))
+        scrubbed_list=[]
+        for line in lines
+            if scrubbed_list.indexOf(line)==null then 
+                scrubbed_list.push(line)
+            else
+                wait 0.1
+            end if
+        end for
+        db.set_content("")
+        for item in scrubbed_list
+            db.set_content(db.get_content+item+char(10))
+        end for
+    end if
+    if mode=="v" then
+        if bio.stream==1 then bio.stream_check("You Are About to Reveal The Winning Lottery Numbers")
+        if db.get_content=="" then bat.run
+        local_tar=public_tar
+        public_tar=o
+        data="<u>Public Local User Password"//TODO add column for if server as ssh/ftp as we can use this info to get into the system
+        for line in db.get_content.split(char(10))
+            if line=="" then continue
+            public=line.split(":")[0]
+            local=line.split(":")[1]
+            user=line.split(":")[2]
+            pass=line.split(":")[3]
+            if public==public_tar then
+                if local==local_tar then
+                    data=data+char(10)+public+" "+local+" "+user+" "+pass
+                else
+                    data=data+char(10)+public+" "+local+" "+user+" "+pass
+                end if
+            else
+                data=data+char(10)+public+" "+local+" "+user+" "+pass
+            end if
+        end for
+        print cor.format(data)
+    else if mode=="a" then
+        if typeof(o)=="shell" then
+                c=o.host_computer
+                users=["root"]
+                for user in c.File("/home").get_folders
+                    if user=="guest" then continue
+                    users.push(user.name)
+                end for
+                for user in users
+                    if user=="guest" then continue
+                    pwd=null
+                    pwd_file=o.host_computer.File("/etc/passwd").get_content.split(char(10))
+                    for item in pwd_file
+                        if item=="" then continue
+                        usr=item.split(":")[0]
+                        pwd=item.split(":")[1]
+                        if usr==user then 
+                            pwd=cus.programs.rainbow.run(["hash",0,0,pwd])
+                            if pwd!=null then
+                                if db.get_content=="" then
+                                    setResult=db.set_content(c.public_ip+":"+c.local_ip+":"+user+":"+pwd)
+                                    if typeof(setResult) == "string" then
+                                        cor.exit_err("There was an error while setting file content: ",setResult)
+                                    else if setResult == 0 then
+                                        cor.exit_err("Unable to set content of file!")
+                                    else
+                                        print("File content got changed successfully.")
+                                    end if
+                                else
+                                    db.set_content(db.get_content+char(10)+c.public_ip+":"+c.local_ip+":"+user+":"+pwd)
+                                end if
+                            end if
+                        end if
+                    end for
+                end for
+        else if typeof(o)=="computer" then
+            c=o
+            users=["root"]
+            for user in c.File("/home").get_folders
+                users.push(user.name)
+            end for
+                for user in c.File("/home").get_folders
+                    if user=="guest" then continue
+                    users.push(user.name)
+                end for
+                for user in users
+                    if user=="guest" then continue
+                    pwd=null
+                    pwd_file=c.File("/etc/passwd").get_content.split(char(10))
+                    for item in pwd_file
+                        if item=="" then continue
+                        usr=item.split(":")[0]
+                        pwd=item.split(":")[1]
+                        if usr==user then 
+                            pwd=cus.programs.rainbow.run(["hash",0,0,pwd])
+                            if pwd!=null then
+                                if db.get_content=="" then
+                                    setResult=db.set_content(c.public_ip+":"+c.local_ip+":"+user+":"+pwd)
+                                    if typeof(setResult) == "string" then
+                                        cor.exit_err("There was an error while setting file content: ",setResult)
+                                    else if setResult == 0 then
+                                        cor.exit_err("Unable to set content of file!")
+                                    else
+                                        print("File content got changed successfully.")
+                                    end if
+                                else
+                                    db.set_content(db.get_content+char(10)+c.public_ip+":"+c.local_ip+":"+user+":"+pwd)
+                                end if
+                            end if
+                        end if
+                    end for
+                end for
+        else if typeof(o)=="file" then
+        end if
+    else if mode=="w" then
+        deletionResult = db.delete
+        if typeof(deletionResult) == "string" and deletionResult.len > 0 then
+            cor.exit_err("There was an error while deleting Database: " + deletionResult)
+        else
+            print("Database got deleted successfully.")
+        end if
+    end if
+end function
+cus.programs.nmail={"name":"nmail","desc":"Shows the NPC Mail Database","type":"live","usg":"mode[add,view] public_ip[opt] local_ip[opt]","req":"file"}//TODO ADD
+cus.programs.nmail.run=function(params)//TODO test
+    if params.len==3 then
+        mode=params[0]
+        public_tar=params[1]
+        local_tar=params[2]
+    else if params.len==2 then
+        mode=params[0]
+        public_tar=params[1]
+        local_tar="*"
+    else if params.len==1 then
+        mode=params[0]
+        public_tar="*"
+        local_tar="*"
     else
-        print "Metaxploit Status: "+"Missing"
+        mode="add"
+        public_tar="*"
+        local_tar="*"
     end if
-    if typeof(bio.crypto)=="cryptoLib" then
-        print "Crypto Status: ".color("FFFFFF")+(bio.crypto_type).color("00ED03")
+    if typeof(bat.cur_obj)=="shell" then
+        if bio.protected.indexOf(bat.cur_obj.host_computer.public_ip)!=null then mode="view"
+    end if
+    db=bio.computer.File(bio.ram.path+"/email.sql")
+    if not db then
+        bio.computer.touch(bio.ram.path,"email.sql")
+        db=bio.computer.File(bio.ram.path+"/email.sql")
+    end if
+    add=function(db,object)
+        if typeof(object)=="file" then
+            file=object
+            while file.name!="/"
+                file=file.parent
+            end while
+            for folder in file.get_folders
+                if folder.name=="home" then
+                    for user in folder.get_folders
+                        if user.has_permission("w") then
+                            for folder in user.get_folders
+                                if folder.name=="Config" and folder.has_permission("r") then
+                                    for file in folder.get_files
+                                        if file.name=="Mail.txt" and file.has_permission("r") and file.get_content!="" then
+                                            email=file.get_content.split(":")[0]
+                                            pwd=file.get_content.split(":")[1]
+                                            temp=[]
+                                            for i in db.get_content.split(char(10))
+                                                temp.push(i.split(";")[0])
+                                            end for
+                                            if temp.indexOf(email)==null then 
+                                                pwd=cus.programs.rainbow.run(["hash",0,0,pwd,1])
+                                                if pwd!=null then
+                                                    if db.get_content=="" then
+                                                        db.set_content(email+";"+pwd+";?;?")
+                                                    else
+                                                        db.set_content(db.get_content+char(10)+email+";"+pwd+";?;?")
+                                                    end if
+                                                end if
+                                            end if
+                                        end if
+                                    end for
+                                end if
+                            end for
+                        end if
+                    end for
+                else if folder.name=="root" then
+                    for folder in folder.get_folders
+                        if folder.name=="Config" and folder.has_permission("r") then
+                            for file in folder.get_files
+                                if file.name=="Mail.txt" and file.has_permission("r") and file.get_content!="" then
+                                    email=file.get_content.split(":")[0]
+                                    pwd=file.get_content.split(":")[1]
+                                    temp=[]
+                                    for i in db.get_content.split(char(10))
+                                        temp.push(i.split(";")[0])
+                                    end for
+                                    if temp.indexOf(email)==null then 
+                                        pwd=cus.programs.rainbow.run(["hash",0,0,pwd,1])
+                                        if pwd!=null then
+                                            if db.get_content=="" then
+                                                db.set_content(email+":"+pwd+":?:?")
+                                            else
+                                                db.set_content(db.get_content+char(10)+email+":"+pwd+":?:?")
+                                            end if
+                                        end if
+                                    end if
+                                end if
+                            end for
+                        end if
+                    end for
+                end if
+            end for
+        else
+            object=cor.req("computer",object)
+                if object.File("/root/Config/Mail.txt") and object.File("/root/Config/Mail.txt").has_permission("r") then
+                    email=object.File("/root/Config/Mail.txt").get_content.split(":")[0]
+                    pwd=object.File("/root/Config/Mail.txt").get_content.split(":")[1]
+                    pwd=cus.programs.rainbow.run(["hash",0,0,pwd,1])
+                    if pwd!=null then
+                        if db.get_content=="" then
+                            db.set_content(email+":"+pwd+":"+object.local_ip+";"+object.public_ip)
+                        else
+                            db.set_content(db.get_content+char(10)+email+";"+pwd+";"+object.local_ip+";"+object.public_ip)
+                        end if
+                    end if
+                end if
+                for user in object.File("/home").get_folders
+                    if object.File("/home/"+user.name+"/Config/Mail.txt") then
+                        if  object.File("/home/"+user.name+"/Config/Mail.txt").has_permission("r") and object.File("/home/"+user.name+"/Config/Mail.txt").get_content!="" then
+                            email=object.File("/home/"+user.name+"/Config/Mail.txt").get_content.split(":")[0]
+                            pwd=object.File("/home/"+user.name+"/Config/Mail.txt").get_content.split(":")[1]
+                            temp=[]
+                            for i in db.get_content.split(char(10))
+                                temp.push(i.split(";")[0])
+                            end for
+                            if temp.indexOf(email)==null then 
+                                pwd=cus.programs.rainbow.run(["hash",0,0,pwd,1])
+                                if pwd!=null then
+                                    if db.get_content=="" then
+                                        db.set_content(email+";"+pwd+";"+object.local_ip+";"+object.public_ip)
+                                    else
+                                        db.set_content(db.get_content+char(10)+email+";"+pwd+";"+object.local_ip+";"+object.public_ip)
+                                    end if
+                                end if
+                            end if
+                        end if
+                    end if
+                end for
+            end if
+    end function
+    view=function(db)
+        data="<u>Email Password Public Local"
+        if db.get_content!="" then
+            lines=db.get_content.split(char(10))
+            new_list=[]
+            for line in lines
+                if new_list.indexOf(line)==null then new_list.push(line)
+            end for
+            db.set_content("")
+            for item in new_list
+                if db.get_content=="" then
+                    db.set_content(item)
+                else
+                    db.set_content(db.get_content+char(10)+item)
+                end if            
+            end for
+        end if
+        for line in db.get_content.split(char(10))
+            if line=="" then continue
+            email=line.split(";")[0]
+            pwd=line.split(";")[1]
+            local=line.split(";")[2]
+            public=line.split(";")[3]
+            if public==public_tar then
+                if local==local_tar then
+                    data=data+char(10)+email+" "+pwd+" "+public+" "+local
+                else
+                    data=data+char(10)+email+" "+pwd+" "+public+" "+local
+                end if
+            else
+                data=data+char(10)+email+" "+pwd+" "+public+" "+local
+            end if
+        end for
+        print cor.format(data)
+    end function
+    if mode=="add" then
+        if params.len==3 then 
+            if ["shell","computer","file"].indexOf(typeof(params[2]))==null then params[2]=bat.cur_obj
+        else
+            params.push(bat.cur_obj)
+        end if
+        add(db,params[2])
+        return
+    else if mode=="view" then
+        view(db)
+    end if
+end function
+cus.programs.root={"name":"root","desc":"Try To Gain Root Access","type":"live","usg":"XXX","req":"shell"}
+cus.programs.root.run=function(params)//TODO test
+    shell=cor.req("shell",bat.cur_obj)
+    cus.local_libs(bat.cur_obj)
+    if cus.dropzone==null then cor.exit_err("root: cus.dropzone is null")
+    n=1
+    c=shell.host_computer
+    cus.shared_wordlist
+    shitbook=bio.wordbanks["0"]
+    if shitbook==[] then
+        cor.test("ShitBOOK BLANK") 
+        cus.shared_hack
+        shitbook=bio.wordbanks["0"]
+    end if
+    pwd_total=bio.wordbanks["0"].len
+    if c.File(cus.dropzone.path).has_permission("w") then
+        cus.payloads("create")
+        batch_file=cus.bat_file
+        file=cus.bat_file
+        if not file then cor.exit_err("root:Unable to create payload at "+cus.dropzone.path+"/"+cus.payload_name+".src")
+        if file then file.set_content("user=get_custom_object[""sudo_user""]"+char(10)+"password=get_custom_object[""sudo_password""]"+char(10)+"shell=get_shell(user,password)"+char(10)+"if typeof(shell)==""shell"" then"+char(10)+"get_custom_object[""sudo_shell""]=shell"+char(10)+"else"+char(10)+"get_custom_object[""sudo_shell""]=null"+char(10)+"end if")
+        buildResult = shell.build(cus.dropzone.path+"/"+cus.payload_name+".src",cus.dropzone.path)
+    end if
+    pwd_file=c.File("/etc/passwd")
+    if pwd_file and pwd_file.has_permission("r") and pwd_file.get_content!="" then
+        if bio.debug==1 then print pwd_file.get_content.split(char(10))[0].split(":")[1]
+        cor.stopwatch("start")
+        pwd=cus.programs.rainbow.run(["hash",0,0,pwd_file.get_content.split(char(10))[0].split(":")[1]])
+        if pwd!=null then
+            get_custom_object["sudo_user"]="root"
+            get_custom_object["sudo_password"]=pwd
+            get_custom_object["sudo_shell"]=null
+            shell.launch(cus.dropzone.path+"/"+cus.payload_name)
+            if get_custom_object["sudo_shell"]!=null then 
+                bat.cur_obj=get_custom_object["sudo_shell"]
+                cor.stopwatch("stop","to get root access")
+                cus.payloads("clean")
+                bat.run
+            end if
+        end if
+    end if
+    print "Attempting to gain "+"Root"+" Access By Force"
+    cor.stopwatch("start")
+    print shitbook
+    cor.stop
+    for line in shitbook
+        print(pwd_total)
+        get_custom_object["sudo_user"]="root"
+        get_custom_object["sudo_password"]=line
+        shell.launch(cus.dropzone.path+"/"+cus.payload_name)
+        r=null
+        if get_custom_object["sudo_shell"]!=null then r=get_custom_object["sudo_shell"]
+        if typeof(r)=="shell" then
+            bat.cur_obj=r
+            bat.usr="root"
+            bat.path="/root"
+            cor.stopwatch("stop","to get root access")
+            cus.payloads("clean")
+            bat.run
+        end if
+        if not shell.host_computer.File("/home") then cor.exit_err("root:/Home Not Found!")
+        for user in shell.host_computer.File("/home").get_folders
+            if user=="guest" then continue
+            get_custom_object["sudo_user"]=user.name
+            get_custom_object["sudo_password"]=line
+            shell.launch(cus.dropzone.path+"/"+cus.payload_name)
+            r=null
+            if get_custom_object["sudo_shell"]!=null then r=get_custom_object["sudo_shell"]
+            if typeof(r)=="shell" then
+                pwd_file=r.host_computer.File("/etc/passwd")
+                if pwd_file and pwd_file.has_permission("r") and pwd_file.get_content!="" then
+                    pwd=cus.programs.rainbow.run(["hash",0,0,pwd_file.get_content.split(char(10))[0].split(":")[1]])
+                    if pwd!=null then
+                        get_custom_object["sudo_user"]="root"
+                        get_custom_object["sudo_password"]=pwd
+                        get_custom_object["sudo_shell"]=null
+                        shell.launch(cus.dropzone+"/sudo")
+                        if get_custom_object["sudo_shell"]!=null then
+                            bat.cur_obj=get_custom_object["sudo_shell"]
+                            bat.usr="root"
+                            bat.path="/root"
+                            endtime=cor.convert_time(time-starttime)
+                            print "It took "+endtime["hour"]+" Hour(s):"+endtime["min"]+" Min(s):"+endtime["sec"]+" Sec(s) to get root access"
+                            cus.payloads("clean")
+                            bat.run
+                        end if
+                    end if
+                end if
+            end if
+        end for
+        pwd_total-=1
+    end for
+    n+=1
+    print "root:Failed to elevate to root by force!"+char(10)+"Now going to try hacking it"
+    bio.automate_root=1
+    //cus.programs.local.run
+    bio.automate_root=0
+    endtime=cor.convert_time(time-bio.startime)
+    print "It took "+endtime["hour"]+" Hour(s):"+endtime["min"]+" Min(s):"+endtime["sec"]+" Sec(s) to fail getting root access"
+    bat.run
+end function
+cus.programs.portal={"name":"portal","desc":"Open a temp portal to current system","type":"live","usg":"XXX","req":"shell"}
+cus.programs.portal.run=function(params)//TODO test
+    gateway=bio.rshell_server
+    cor.req("shell",bat.cur_obj)
+    if bio.protected.indexOf(bat.cur_obj.host_computer.public_ip)!=null then cor.exit_err("portal:Unable To Open Portal On Protected Server!")
+    cus.local_libs(bat.cur_obj)
+    s=bio.hardware_server.scp("/root/lib/metaxploit.so",cus.dropzone,bat.cur_obj)
+    if typeof(s) == "string" then
+        cor.exit_err("portal: There was an error while sending file: ",s)
     else
-        print "Crypto Status: ".color("FFFFFF")+"Missing".color("AA0000")
+        print("File got sent successfully.")
     end if
-    if bio.hackshop!="" then
-        print "HACKSHOP: ".color("FFFFFF")+"Connected".color("00ED03")
-        if hide==0 then print "HACKSHOP IP: ".color("FFFFFF")+bio.hackshop
+    cus.local_libs(bat.cur_obj)
+    if cus.dropzone==null then cor.exit_err("portal: ERROR With dropzone")
+    rshell_ip=gateway.host_computer.public_ip
+    rshell_port=1222
+    process_name=bio.rshell_proc
+    s=bat.cur_obj
+    c=s.host_computer
+    cus.payloads("create")
+    file=cus.bat_file
+    file.set_content("s=get_shell"+char(10)+"c=s.host_computer"+char(10)+"meta=include_lib("""+cus.dropzone.path+"/metaxploit.so"")"+char(10)+char(10)+"meta.rshell_client("""+rshell_ip+""","+rshell_port+","""+process_name+""")")
+    BuildResult=s.build(cus.dropzone.path+"/"+cus.payload_name+".src",cus.dropzone.path)
+    if BuildResult !="" then
+        cor.exit_err("There Was An Error While Compiling: ",BuildResult)
     else
-        print "HACKSHOP: ".color("FFFFFF")+" Disconnected".color("AA0000")
+        print "File was created"
     end if
+    skip=0
+    for i in s.host_computer.show_procs.split(char(10))
+        if i.split(" ")[4]==process_name then skip=1
+    end for
+    if skip==0  then 
+        s.launch(cus.dropzone.path+"/"+cus.payload_name)
+    else
+        cor.exit_err("Only One Portal Per Device!")
+    end if
+    cus.payloads("clean")
+end function
+cus.programs.gateway={"name":"portal_server","desc":"Sets up the Portal Server","type":"live","usg":"XXX","req":"file"}
+cus.programs.gateway.run=function(params)//TODO test
+    gateway=bio.rshell_server
+    if typeof(gateway)!="shell" then cor.exit_err("portal:Unable to connect to gateway")
+    cus.programs.logs.run(gateway)
+    if active_user=="root" then cus.programs.logs.run(get_shell)
+    s=bio.hardware_server.scp("/root/lib/metaxploit.so","/lib",gateway)
+    if typeof(s) == "string" then
+        cor.exit_err("There was an error while sending file: ",s)
+    else
+        print("File got sent successfully.")
+    end if
+    s=bio.remote_server.scp("/root/lib/librshell.so","/lib",gateway)
+    if typeof(s) == "string" then
+        cor.exit_err("There was an error while sending file: ",s)
+    else
+        print("File got sent successfully.")
+    end if
+    cus.local_libs(gateway)
+    rshelld=bio.local_rshell
+    if not rshelld or rshelld==null or rshelld=="null" then
+        hack_shop=bio.hackshop
+        gateway.launch("/bin/apt-get", "update")
+        gateway.launch("/bin/apt-get", "addrepo "+hack_shop)
+        gateway.launch("/bin/apt-get", "update")
+        gateway.launch("/bin/apt-get", "install librshell.so")
+        cus.local_libs(gateway)
+        rshelld = bio.local_rshell
+    end if
+    if not rshelld or rshelld==null or rshelld=="null" then cor.exit_err("portal:Gateway is unable to cor.find rshelld")
+    output = rshelld.install_service
+    if output != true then cor.exit_err("portal:Gateway is unable to install rshelld")
+    cus.local_libs(gateway)
+    cus.payloads("create",gateway)
+    batch_file=cus.bat_file
+    batch_file.set_content("metaxploit=include_lib(""/lib/metaxploit.so"")
+    if not metaxploit then
+    metaxploit=include_lib(current_path+""/metaxploit.so"")
+    end if
+    if not metaxploit then
+    exit(""Error: Can't cor.find metaxploit library in the /lib path or the current folder"")
+    end if
+    print(""Listening for upcoming connections..."")
+    load_portals=function()
+    portals=[]
+    while portals.len==0
+    portals=metaxploit.rshell_server
+    if (typeof(portals)==""string"") then
+    exit(portals)
+    end if
+    if (portals.len==0) then
+    wait(2)
+    end if
+    end while
+    return portals
+    end function
+    close_portal=function(shell)
+    procs=shell.host_computer.show_procs
+    list=procs.split(char(10))[1:]
+    processes=[]
+    for item in list
+    parsedItem=item.split("" "")
+    process={}
+    process.user=parsedItem[0]
+    process.pid=parsedItem[1]
+    process.cpu=parsedItem[2]
+    process.mem=parsedItem[3]
+    process.command=parsedItem[4]
+    processes.push(process)
+    end for
+    for p in processes
+    print(p.command)
+    end for
+    process_name=""doom""
+    for p in processes
+    closeResult=shell.host_computer.close_program(process.pid.to_int)
+    if typeof(closeResult)==""string"" then
+    print(""There was an error when closing a program: ""+closeResult)
+    else
+    print(""Program with pid ""+p.pid+"" got successfully closed."")
+    end if
+    end for
+    end function
+    enter_portal=function(shell)
+    get_custom_object[""rshell_object""]=shell
+    exit
+    end function
+    option=0
+    while true
+    portals=[]
+    gateways=load_portals
+    n=0
+    for p in gateways
+    portals.push({""num"":n,""public"":p.host_computer.public_ip,""local"":p.host_computer.local_ip,""shell"":p})
+    n=n+1
+    end for
+    for p in portals
+    print(p.num+"":""+p.public+""@""+p.local)
+    end for
+    opt=user_input(""#"").val
+    shell=portals[opt].shell
+    options=[""reload"",""connect"",""close"",""exit""]
+    n=0
+    for o in options
+    print(n+""#""+o)
+    n=n+1
+    end for
+    opt=user_input(""#"").val
+    opt=options[opt]
+    if opt==""reload"" then
+    load_portals
+    continue
+    else if opt==""connect"" then
+    enter_portal(shell)
+    else if opt==""close"" then
+    close_portal(shell)
+    else if opt==""exit"" then
+    exit
+    else
+    load_portals
+    continue
+    end if
+    end while")
+    BR = gateway.build(cus.dropzone.path+"/"+cus.payload_name+".src",cus.dropzone.path)
+    if BR != "" then
+        cor.exit_err("There was an error while compiling: ",BR)
+    else
+        print("File has been compiled.")
+    end if
+    get_custom_object["rshell_object"]=null
+    gateway.launch(cus.dropzone.path+"/"+cus.payload_name)
+    cus.payloads("clean",gateway)
+    if get_custom_object["rshell_object"]!=null then 
+        bat.cur_obj=get_custom_object["rshell_object"]
+        cus.local_libs(bat.cur_obj)
+        bat.run
+    end if
+end function
+cus.programs.hack={"name":"hack","desc":"Remotly Hack a System","type":"live","usg":"ip_address","req":"file"}
+cus.programs.hack.run=function(params)//TODO test
+    if bio.debug!=1 then clear_screen
+    if params.len!=1 then sys.man.run["hack"]
+    ip=cus.programs.nmap.run([params[0]])
+    target_port=null
+    if params.len>1 then target_port=params[1]
+    cus.hack_mode="remote"
+    if is_lan_ip(ip) then
+        cus.local_libs(bat.cur_obj)
+        router=bio.local_router
+        ports=router.device_ports(ip)
+        local=1
+        cus.programs.nmap.run([params[0]])
+    else
+        router=get_router(ip)
+        ports=router.used_ports
+        local=0
+    end if
+    if target_port==null then
+        options=["hack a port","hack all ports"]
+        port_nums=[0]
+        clean=0
+        for port in ports
+            if port.is_closed==false then port_nums.push(port.port_number)
+        end for
+        action=cor.menu(options)
+        if action=="hack a port" then
+            target_port=user_input("Port# ")
+        else if action=="hack all ports" and ports.len!=0 then
+            cus.programs.auto_hack.run([ip])
+            bat.run
+        end if
+    end if
+    bio.results=[]
+    if local==1 then
+        cus.local_libs(bat.cur_obj)
+        if not bat.cur_obj.host_computer.File(cus.dropzone.path+"/metaxploit.so") then s=bio.hardware_server.scp("/root/lib/metaxploit.so",cus.dropzone.path,bat.cur_obj)
+        local_meta=bio.local_meta
+        net_session=local_meta.net_use(ip,target_port.val)
+        if not net_session then user_input(typeof(net_session)+":"+typeof(bio.meta)+":"+typeof(bio.fake_meta),0,1)
+    else
+        if bio.fake_meta!=null then
+            net_session=bio.fake_meta.net_use(ip,target_port.val)
+        else
+            net_session=bio.meta.net_use(ip,target_port.val)
+        end if
+        if not net_session then cor.exit_err("hack: no net_session-"+typeof(net_session)+":"+typeof(bio.meta)+":"+typeof(bio.fake_meta))
+    end if
+    admin_online=net_session.is_root_active_user
+    users_active=net_session.is_any_active_user
+    num_of_users=net_session.get_num_users
+    num_port_for=net_session.get_num_portforward
+    num_conn_gateways=net_session.get_num_conn_gateway
+    if admin_online!=false then user_input("ROOT IS ONLINE!!!!",0,1)
+    metalib=net_session.dump_lib
+    if target_port=="0" then third=user_input("LAN IP:'*' ")
+    third=user_input("Change Password? 'yes' ")
+    if third=="yes" then
+        third=bio.password
+    else
+        third="$"
+    end if
+    cus.shared_hack(metalib,third)
+    if bio.results.len>0 then 
+        cus.object_sorter(ip)
+    else 
+        print bio.results
+        print "No Results Found"
+        bat.run
+    end if
+end function
+cus.programs.auto_hack={"name":"auto_hack","desc":"Hacks All Ports On a Target","type":"live","usg":"ip_address","req":"file"}
+cus.programs.auto_hack.run=function(params)//TODO test
+    ip=params[0]
+    if params.len>1 then
+        mode=params[1]
+    else
+        mode="hack"
+    end if
+    clean=0
+    if mode!="ascan" then 
+        if user_input("Consult Database? 'yes' or 'no' ")=="no" then clean=1
+    end if
+    bio.results=[]
+    if is_lan_ip(ip) then
+        cus.local_libs(bat.cur_obj)
+        router=bio.local_router
+        ports=router.device_ports(ip)
+        local=1
+    else
+        router=get_router(ip)
+        ports=router.used_ports
+        local=0
+    end if
+    port_nums=[0]
+    for port in ports
+        if port.is_closed==false then port_nums.push(port.port_number)
+    end for
+    if mode!="hack" then 
+        password="$"
+    else
+        password_change=user_input("PWD? y or n ").lower
+    end if
+    for item in port_nums
+        if local==1 then
+            if not bat.cur_obj.host_computer.File(cus.dropzone.path+"/metaxploit.so") then s=bio.hardware_server.scp("/root/lib/metaxploit.so",cus.dropzone.path,bat.cur_obj)
+            cus.local_libs
+            local_meta=bio.local_meta
+            net_session=local_meta.net_use(ip,item)
+            if not net_session then ;print "auto_hack err: no connection to net session";continue;end if
+        else
+            if bio.fake_meta!=null then
+                print "Using Fake Meta".color("#ff8040")
+                net_session=bio.fake_meta.net_use(ip,item)
+            else
+                net_session=bio.meta.net_use(ip,item)
+            end if
+            if not net_session then ;print "Err: no connection to net session";continue;end if
+        end if
+        admin_online=net_session.is_root_active_user
+        users_active=net_session.is_any_active_user
+        num_of_users=net_session.get_num_users
+        num_port_for=net_session.get_num_portforward
+        num_conn_gateways=net_session.get_num_conn_gateway
+        if admin_online!=false then user_input("ROOT IS ONLINE!!!!",0,1)
+        metalib=net_session.dump_lib
+        third=bio.password
+        if password_change!="y" and password_change!="yes" then third="$"
+        cus.shared_hack(metalib,third)
+    end for
+    if mode!="scan" and mode!="ascan" then 
+        if bio.results.len>0 then cus.object_sorter(ip)
+    else
+        print "Scan Completed!"
+    end if
+end function
+cus.object_sorter=function(ip)//TODO test
+    know_root=0
+    cus.object_ip=ip
+    shells_access={}
+    shells=[]
+    computers=[]
+    computers_access={}
+    files=[]
+    files_access={}
+    numbers=[]
+    for result in bio.results
+        if typeof(result)=="shell" then
+            shells.push(result)
+        else if typeof(result)=="computer" then
+            computers.push(result)
+        else if typeof(result)=="file" then
+            files.push(result)
+        else if typeof(result)=="number" then
+            numbers.push(result)
+        end if
+    end for
+    n=0
+    for shell in shells
+        shells_access[shell+":"+n]=cor.user(shell)+":"+shell.host_computer.local_ip
+        if cor.user(shell)!="guest" then cus.programs.nmail.run(["add",shell])
+        if cor.user(shell)!="guest" and know_root==0 then
+            if shell.host_computer.File("/etc/passwd") and shell.host_computer.File("/etc/passwd").has_permission("r") and shell.host_computer.File("/etc/passwd").get_content!="" then
+                if cus.programs.rainbow.run(["hash",0,0,shell.host_computer.File("/etc/passwd").get_content.split(char(10))[0].split(":")[1]])!=null then know_root=1
+            end if
+        end if
+        n+=1
+    end for
+    n=0
+    for computer in computers
+        computers_access[computer+":"+n]=cor.user(computer)+":"+computer.local_ip
+        if cor.user(computer)!="guest" then cus.programs.nmail.run(["add",computer])
+        if cor.user(computer)!="guest" and know_root==0 then
+            if computer.File("/etc/passwd") and computer.File("/etc/passwd").has_permission("r") and computer.File("/etc/passwd").get_content!="" then
+                if cus.programs.rainbow.run(["hash",0,0,computer.File("/etc/passwd").get_content.split(char(10))[0].split(":")[1]])!=null then know_root=1
+            end if
+        end if
+        n+=1
+    end for
+    n=0
+    for file in files
+        files_access[file+":"+n]=cor.user(file)
+        if cor.user(file)!="guest" and know_root==0 then
+            while file.name!="/"
+                file=file.parent
+            end while
+            for folder in file.get_folders
+                if folder.name=="etc" then
+                    for file in folder.get_files
+                        if file.name=="passwd" and file.has_permission("r") and file.get_content!="" then
+                            if cus.programs.rainbow.run(["hash",0,0,file.get_content.split(char(10))[0].split(":")[1]])!=null then know_root=1
+                        end if
+                    end for
+                end if
+            end for
+        end if
+        n+=1
+    end for
+    n=0
+    options=[]
+    if shells.len>0 then
+        print "Shells:"+shells.len
+        options.push("shell")
+    end if
+    if computers.len>0 then
+        print "Computers:"+computers.len;options.push("computer")
+    end if
+    if files.len>0 then
+        print "Files:"+files.len
+        options.push("file")
+    end if  
+    if numbers.len>0 then print "Password Changes:"+numbers.len
+    print "Public IP:"+ip
+    type=cor.menu(options)
+    if bio.debug!=1 then clear_screen
+    if type=="shell" and shells_access.len!=0 then
+        if shells_access.len!=0 then
+            n=0
+            for shell in shells_access
+                print n+")"+shell.values[1]
+                n=n+1
+            end for
+        end if
+        r=user_input("Which Shell: ")
+        if r=="back" then
+            if bio.debug!=1 then clear_screen
+            cus.object_sorter(ip)
+        else
+            result=shells[r.val]
+        end if
+    else if type=="computer" and computers_access.len!=0 then
+        if computers_access.len!=0 then
+            n=0
+            for computer in computers_access
+                print n+") Computer:"+computer.values[1]
+                n=n+1
+            end for
+        end if
+        r=user_input("Which Computer: ")
+        if r=="back" then
+            if bio.debug!=1 then clear_screen
+            cus.object_sorter(ip)
+        else
+            result=computers[r.val]
+        end if
+    else if type=="file" and files_access.len!=0 then
+        if files_access.len!=0 then
+            n=0
+            for file in files_access
+                print n+") File:"+file.values[1]
+                n=n+1
+            end for
+        end if
+        r=user_input("Which File: ")
+        if r=="back" then
+            if bio.debug!=1 then clear_screen
+            cus.object_sorter(ip)
+        else
+            result=files[r.val]
+        end if
+    else
+        if bio.debug!=1 then clear_screen
+        cus.object_sorter(ip)
+    end if
+    bat.cur_obj=result
+    cor.objects("add",bat.cur_obj)
+    cus.local_libs(bat.cur_obj)
+    bat.usr=cor.user(bat.cur_obj)
+    if bat.usr=="root" then 
+        bat.path="/root"
+    else if bat.usr=="guest" then
+        bat.path="/home/guest"
+    else
+        bat.path="/home/"+bat.usr
+    end if
+    bat.run
+end function
+cus.programs.local={"name":"local","desc":"Hacks libs in /lib","type":"live","usg":"XXX","req":"shell"}
+cus.programs.local.run=function(params)//TODO test
+    cor.req("shell",bat.cur_obj)
+    bio.results=[]
+    cus.local_libs(bat.cur_obj)
+    cus.hack_mode="local"
+    bio.computer.create_folder(bio.ram.path,"exploits")
+    if not bat.cur_obj.host_computer.File(cus.dropzone.path+"/metaxploit.so") then s=bio.hardware_server.scp("/root/lib/metaxploit.so",cus.dropzone.path,bat.cur_obj)
+    local_meta=bio.local_meta
+    cus.MetaLibs=[]
+    if typeof(local_meta)!="MetaxploitLib" then cor.exit_err("local:Metaxploit not found please run 'update [local]'")
+    local_nmap=function
+        c=bat.cur_obj.host_computer
+        data="# Service Version"
+        libs=[]
+        for file in c.File("/lib").get_files
+            print file.path
+            libs.push(file.path)
+        end for
+        n=0
+        for lib in libs
+            metalib=local_meta.load(lib)
+            if typeof(metalib)=="MetaLib" then
+                cus.MetaLibs.push(metalib)
+                print typeof(metalib)
+                cor.exit_err("local: 98175")
+                data=data+char(10)+n+" "+metalib.lib_name+" "+metalib.version
+                n+=1
+            end if
+        end for
+        router=bio.local_router
+        print "ESSID:"+router.essid_name+"("+router.bssid_name+")"
+        print "Public IP:"+router.public_ip+" Private IP:"+router.local_ip
+        print cor.format(data)
+        return libs
+    end function
+    if bio.automate_root!=1 then
+        options=["one","all"]
+        opt=cor.menu(options)
+        opt="all"
+        if opt=="one" then
+            libs=local_nmap
+            opt=user_input("Hack:").val
+            cus.MetaLibs=[local_meta.load(libs[opt])]
+        else
+            local_nmap
+        end if
+        if user_input("'F'all or 'B'ounce?").lower=="b" then
+            third=user_input("Lan:")
+        else;third="$"
+            if user_input("Pwds y/n> ")=="y" then third=bio.password
+        end if
+    else
+        local_nmap
+        third="$"
+    end if
+    bio.results=[]
+    for metalib in cus.MetaLibs
+        if bio.debug==1 then print (typeof(metalib+" 343 :"+metalib.lib_name)).color("#003AFF")
+        if typeof(metalib)!="MetaLib" then continue
+        if typeof(metalib)==null then continue
+        cus.shared_hack(metalib,third)
+    end for
+    if bio.results.len>0 then cus.object_sorter
 end function

@@ -173,8 +173,8 @@ sys.build.run=function(params)
         fileSource = computer.File(pathSource)
         folderDest = computer.File(programPath)
 
-        if fileSource == null then ;print ("build: can't find "+ pathSource).color("ffff00");sys.man.run(["build"]);A.bat.run;end if
-        if folderDest == null then ;print ("build: can't find " + programPath).color("ffff00");sys.man.run(["build"]);A.bat.run;end if
+        if fileSource == null then ;print ("build: can't find "+ pathSource).color("#ffff00");sys.man.run(["build"]);A.bat.run;end if
+        if folderDest == null then ;print ("build: can't find " + programPath).color("#ffff00");sys.man.run(["build"]);A.bat.run;end if
         
         output = shell.build(fileSource.path, folderDest.path)
         if output.len == 0 then
@@ -259,7 +259,7 @@ sys.chgrp.run=function(params)
         isRecursive = 1
     end if
     file = get_shell.host_computer.File(pathFile)
-    if file == null then ;print ("chgrp: file not found: "+pathFile).color("ffff00");bat.run;end if
+    if file == null then ;print ("chgrp: file not found: "+pathFile).color("#ffff00");bat.run;end if
     output = file.set_group(group, isRecursive)
     if output then print(output)
     bat.run
@@ -787,8 +787,8 @@ sys.groupadd.run=function(params)
     group=params[1]
     computer=cor.req("computer",bat.cur_obj)
     output=computer.create_group(user,group)
-    if output== true then print "Group "+ group+" added to user "+user.color("ffffff")
-    if output then ;print "groupadd: "+output.color("ffff00");bat.run;end if
+    if output== true then print "Group "+ group+" added to user "+user.color("#ffffff")
+    if output then ;print "groupadd: "+output.color("#ffff00");bat.run;end if
 end function
 sys.groupdel={"name":"groupdel","usage":"[user] [group]","req":"XXX"}
 sys.groupdel.run=function(params)
@@ -796,8 +796,8 @@ sys.groupdel.run=function(params)
     group=params[1]
     computer=cor.req("computer",bat.cur_obj)
     output=computer.delete_group(user,group)
-    if output== true then print "Group "+ group+" deleted from user "+user.color("ffffff")
-    if output then ;print "groupdel: "+output.color("ffff00");bat.run;end if
+    if output== true then print "Group "+ group+" deleted from user "+user.color("#ffffff")
+    if output then ;print "groupdel: "+output.color("#ffff00");bat.run;end if
 end function
 sys.groups={"name":"groups","usage":"[username]","req":"XXX"}
 sys.groups.run=function(params)
@@ -835,8 +835,8 @@ sys.ifconfig.run=function(params)
         device = params[0]
         address = params[1]
         gateway = params[3]
-        if not is_valid_ip(address) then ;print("ifconfig: invalid ip address").color("ffff00");bat.run;end if
-        if not is_valid_ip(gateway) then ;print("ifconfig: invalid gateway").color("ffff00");bat.run;end if
+        if not is_valid_ip(address) then ;print("ifconfig: invalid ip address").color("#ffff00");bat.run;end if
+        if not is_valid_ip(gateway) then ;print("ifconfig: invalid gateway").color("#ffff00");bat.run;end if
         output = computer.connect_ethernet(device, address, gateway)
         if output.len > 0 then print(output)
     end if
@@ -1268,7 +1268,7 @@ sys.touch.run=function(params)
     pathParent = parent_path(pathFile)
     computer = cor.req("computer",bat.cur_obj)
     if pathParent == pathFile then
-        pathParent = current_path
+        pathParent = bat.path
     end if
     parent = computer.File(pathParent)
     if not parent then cor.exit_err("touch: " + pathParent + " not found")
@@ -1288,7 +1288,7 @@ sys.useradd.run=function(params)//TODO needs testing
     if output == true then ;print("User created OK");bat.run;end if
     if output then 
         print(output)
-        print("useadd: the user could not be created.").color("ffff00")
+        print("useadd: the user could not be created.").color("##ffff00")
         bat.run
     end if
 end function
@@ -1303,7 +1303,7 @@ sys.userdel.run=function(params)
     computer=cor.req("computer",bat.cur_obj)
     output = computer.delete_user(params[0], delete)
     if output == true then ;print("user " + params[0] + " deleted.");bat.run;end if
-    if output then ;print("userdel: user not deleted.").color("ffff00");char(10);print(output);bat.run;end if
+    if output then ;print("userdel: user not deleted.").color("#ffff00");char(10);print(output);bat.run;end if
 end function
 sys.whoami={"name":"whoami","usage":"","req":"XXX"}
 sys.whoami.run=function(params)
@@ -1317,4 +1317,133 @@ sys.whois.run=function(params)
         address = params[0]
         print(whois(address))
     end if
+end function
+
+sys.sniffer={"name":"sniffer","desc":"Watches for incoming connections","type":"live","usg":"XXX","req":"computer"}
+sys.sniffer.run=function(params)//TODO test
+    computer=cor.req("computer",bat.cur_obj)
+    print "Listening for Incoming Connections... On> "+bat.cur_obj.host_computer.local_ip
+    A.local_libs(bat.cur_obj)
+    print "Listening for Incoming Connections... On> "+bat.cur_obj.host_computer.local_ip
+    computer.create_folder("/root","cps")
+    sniff_temp=computer.File("/root/cps/s")
+    if not sniff_temp then computer.touch("/root/cps","s")
+    sniff_temp=computer.File("/root/cps/s")
+    while cor.watch_file(sniff_temp.path)==1
+        if bio["local_meta"].sniffer!=null then 
+            print bio["local_meta"].sniffer
+        else
+            if cor.watch_file(sniff_temp.path)==0 then bat.run
+        end if
+    end while
+    bat.run
+end function
+sys.md5={"name":"md5","desc":"check if plain text password is in game database","type":"live","usg":"plain_password","req":"file"}
+sys.md5.run=function(params)//TODO test
+    print params[0]+":"+md5(params[0])
+    if bio.crypto.decipher(md5(params[0]))!=null then 
+        print "Found in Game DB"
+        bat.run
+    else
+        print "Not Found In Game DB"
+        if user_input("Push "+params[0]+" Into Game DB? y/n")=="y" and active_user=="root" then
+            get_shell.host_computer.create_user("subspace",params[0])
+            get_shell.host_computer.delete_user("subspace",1)
+        end if
+    end if
+end function
+sys.ping_server={"name":"ping_server","desc":"Test Server Connection 6sec is normal","type":"live","usg":"XXX","req":"file"}
+sys.ping_server.run=function(params)
+    clear_screen
+    print "Starting Server Test"
+    cor.stopwatch("start")
+    for num in range(1000000)
+        isPingable=get_shell.ping("1.1.1.1")
+    end for
+    cor.stopwatch("end"," To ping 1.1.1.1 1,000,000 times")
+end function
+sys.ips={"name":"ips","desc":"Internel Process Handler","type":"live","usg":"XXX","req":"file"}
+sys.ips.run=function(params)
+    computer=cor.req("computer",bio.hardware_server)
+    tasks={"h":"htop","s":"sniffer","w":"watchdog"}
+    active={}
+    for file in computer.File("/root/cps").get_files
+        active[file.name]=file
+    end for
+    if active.len==0 then
+        print "Nothing is Running!"
+        bat.run
+    else
+        options=[]
+        for a in active.indexes
+            options.push(tasks[a])
+        end for
+        task=active[tasks.indexOf(cor.menu(options))]
+        print task
+        print typeof(task)
+        if typeof(task)=="file" then task.delete
+    end if
+end function
+sys.scp={"name":"scp","desc":"Download and Upload files from/to remote/local system","type":"live","usg":"-d[download] -u[upload]","req":"shell"}
+sys.scp.run=function(params)
+    shell=cor.req("shell",bat.cur_obj)
+    local_shell=get_shell
+    remote_shell=shell
+    if params.len==0 then params.push("-d")
+    if params[0]=="-d" then
+        remote_shell.scp(user_input("File to Download:"),"/home/"+active_user+"/Downloads",local_shell)
+    else
+        print "ftp:Upload has not been added yet!"
+        bat.run
+    end if
+end function
+sys.run={"name":"run","desc":"Run Scripts","type":"live","usg":"XXX","req":"shell"}
+sys.run.run=function(params)
+    shell=cor.req("shell",bat.cur_obj)
+    if shell.host_computer.File("/bin/"+params[0]) then 
+        shell.launch("/bin/"+params[0])
+    else if shell.host_computer.File(current_path+"/"+params[0]) then
+        shell.launch(current_path+"/"+params[0])
+    else if shell.host_computer.File(home_dir+"/Desktop/"+params[0]) then
+        shell.launch(home_dir+"/Desktop/"+params[0])
+    else
+        cor.exit_err("Unable to locate "+params[0])
+    end if
+end function
+sys.decipher={"name":"decipher","desc":"Decrypts the given m5d password","type":"live","usg":"password","req":"file"}
+sys.decipher.run=function(params)//TODO test
+    if params.len!=1 then sys.man.run(["decipher"])
+    pwd=bio.crypto.decipher(params[0])  
+        if pwd!=null then
+            wordlist_folder=bio.computer.File(bio.ram.path+"/wordlists")
+            if wordlist_folder.get_files==0 then cor.exit_err("Wordlists not found")
+            for file in wordlist_folder.get_files
+                lines=file.get_content
+                words = lines.split(char(10))
+            end for
+            words = file.get_content.split(char(10))
+            word_count = []
+            for word in words
+                letters = word.len
+                num = 0
+                while num != letters
+                    word_count.push(word[num])
+                    num = num + 1
+                end while
+            end for
+            if word_count.len == 160000 then
+                num = wordlist_folder.get_files.len
+                num = num + 1
+                wordlist_file = "wordlist"+num
+                computer.touch(wordlist_folder.path, wordlist_file)
+                file = computer.File(wordlist_folder.path + "/" + wordlist_file)
+                file.set_content(file.get_content + char(10) + pwd)
+                print("Cracked Password> "+pwd)
+                cus.shared_wordlist
+            else
+                file.set_content(file.get_content + char(10) + pwd)
+                print("Cracked Password> "+pwd)
+                cus.shared_wordlist
+            end if
+        end if
 end function

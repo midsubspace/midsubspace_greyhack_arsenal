@@ -1,8 +1,8 @@
 print "Imported Core.src"
 cor={}
 //string functions taken from https://github.com/cloverrfoxx/foxlib-gh/blob/main/src/text.src
-string.color = function(hex="ffffff")
-    return "<#"+hex+">"+self+"</color>"
+string.color = function(hex="#ffffff")
+    return "<"+hex+">"+self+"</color>"
 end function
 string.bold=function()
     return "<b>"+self+"</b>"
@@ -16,8 +16,8 @@ end function
 cor.crypto=function()
     crypto=include_lib("/lib/crypto.so")
     if typeof(crypto)!="cryptoLib" then
-        print "Crypto.so Not Found".color("ffff00")
-        A.bat.run
+        print "Crypto.so Not Found".color("#ffff00")
+        bat.run
     else
         return(crypto)
     end if
@@ -25,8 +25,8 @@ end function
 cor.meta=function()
     meta=include_lib("/lib/metaxploit.so")
     if typeof(meta)!="MetaxploitLib" then
-        print "Metaxploit.so Not Found".color("ffff00")
-        A.bat.run
+        print "Metaxploit.so Not Found".color("#ffff00")
+        bat.run
     else
         return(meta)
     end if
@@ -34,8 +34,8 @@ end function
 cor.apt=function()
     apt=include_lib("/lib/aptclient.so")
     if typeof(apt)!="aptclientLib" then
-        print "Aptclient.so Not Found".color("ffff00")
-        A.bat.run
+        print "Aptclient.so Not Found".color("#ffff00")
+        bat.run
     else
         return(apt)
     end if
@@ -46,7 +46,7 @@ cor.req=function(need=null,object=null)
             return object
         else
             print "Must have Shell Object! ".color(ffff00)+char(10)+"You Have A "+typeof(object).color(ffff00)
-            A.bat.run
+            bat.run
         end if
     else if need=="computer" then
         if typeof(object)=="shell" then
@@ -56,7 +56,7 @@ cor.req=function(need=null,object=null)
             return object
         else if typeof(object)=="file" then
             print "Must have Computer Object! ".color(ffff00)+char(10)+"You Have A "+typeof(object).color(ffff00)
-            A.bat.run
+            bat.run
         end if
     else if need=="file" then
         if typeof(object)=="shell" then
@@ -72,7 +72,7 @@ cor.req=function(need=null,object=null)
             return object
         else
             print "Must have File Object! ".color(ffff00)+char(10)+"You Have A "+typeof(object).color(ffff00)
-            A.bat.run
+            bat.run
         end if
     else
         cor.exit_err("COR.REQ FAILED DUMBASS")
@@ -159,9 +159,9 @@ cor.user=function(object=null)
 end function
 cor.exit_err=function(message="You Fucked Up",output=null)
     if output!=null then
-        print message.color("ffff00")+char(10)+output
+        print message.color("#ffff00")+char(10)+output
     else
-        print message.color("ffff00")
+        print message.color("#ffff00")
     end if
     bat.run
 end function
@@ -199,7 +199,7 @@ cor.check_match=function(matches)
         if matches[opt]=="exit" then return null
         return matches[opt]
     else if matches.len==0 then
-        print "No Matches Found!".color("ffffff")
+        print "No Matches Found!".color("#ffffff")
         return null
     else
         return matches[0]
@@ -207,7 +207,7 @@ cor.check_match=function(matches)
 end function
 cor.find=function(object=null)
     if typeof(object)!="file" then
-        print "Find: Must pass file object".color("ffff00")
+        print "Find: Must pass file object".color("#ffff00")
         bat.run
     end if
     temp={"files":[],"folders":[]}
@@ -247,17 +247,17 @@ cor.menu=function(options)
         print n+")"+option
         n=n+1
     end for
-    opt=user_input("Choice> ".color("ffffff"))
+    opt=user_input("Choice> ".color("#ffffff"))
     if options.indexOf(opt)==null then
         opt=opt.val
         if opt==0 then
-            print "Aborted".color("ffff00")
+            print "Aborted".color("#ffff00")
             bat.run
         end if
         return options[opt-1]
     else
         if opt=="exit" then
-            print "Aborted".color("ffff00")
+            print "Aborted".color("#ffff00")
             bat.run
         end if
         return opt
@@ -274,23 +274,23 @@ cor.get_date=function()
 end function
 cor.perms=function(perms)
         if perms==1 then
-        return perms.color("00ED03")
+        return perms.color("#00ED03")
     else if perms==0 then
-        return perms.color("AA0000")
+        return perms.color("#AA0000")
     else
-        return perms.color("FFFFFF")
+        return perms.color("#FFFFFF")
     end if
 end function
 cor.stopwatch=function(mode="start",msg="")
     if mode=="start" then
-        A.startime=time
+        bio.startime=time
     else
-        endtime=core.convert_time(time-A.startime)
+        endtime=cor.convert_time(time-bio.startime)
         print "It took "+endtime["hour"]+" Hour(s):"+endtime["min"]+" Min(s):"+endtime["sec"]+" Sec(s) "+msg
     end if
 end function
 cor.watch_proc=function(name="Notepad.exe")
-    computer=core.req("computer",get_shell)
+    computer=cor.req("computer",get_shell)
     show_procs
     list=computer.show_procs.split(char(10))[1:]
     for item in list
@@ -300,7 +300,7 @@ cor.watch_proc=function(name="Notepad.exe")
     return 0
 end function
 cor.watch_file=function(path)
-    computer=core.req("computer",get_shell)
+    computer=cor.req("computer",get_shell)
     if computer.File(path)!=null then 
         return 1
     else
@@ -370,9 +370,29 @@ cor.objects=function(mode=null,object=null)
         else
             cor.exit_err("Currently only stores Shell and Computer Objects")
         end if
+    else if ["-l","libs"].indexOf(mode)!=null then
+        target=object
+        if typeof(target)=="shell" then
+            shells=[]
+            for object in bat.object_history
+                if object["type"]=="shell" then shells.push(object)
+            end for
+            ips=[]
+            choice=null
+            for shell in shells
+                if choice!=null then continue
+                ips.push(shell["public_ip"]+"@"+shell["local_ip"]+"#"+shell["user"])
+                if target.host_computer.public_ip==shell["public_ip"] and target.host_computer.local_ip==shell["local_ip"] then choice=shell
+            end for
+            return({"crypto":choice["local_crypto"],"meta":choice["local_meta"],"router":choice["local_router"]})
+        else if type=="computer" then
+        
+        else
+            cor.exit_err("Currently only stores Shell and Computer Objects")
+        end if
     else
         cor.exit_err("cor.objects: invalid mode passed->"+mode)
     end if
     bat.run
 end function
-cor.stop=function(txt="Press Any Key To Continue!");user_input(txt.color("ffffff"),0,1);end function
+cor.stop=function(txt="Press Any Key To Continue!");user_input(txt.color("#ffffff"),0,1);end function

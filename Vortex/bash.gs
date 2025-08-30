@@ -6,8 +6,8 @@ import_code("/bin/programs.src") // override=imports/custom.src
 
 
 bat={"cur_obj":get_shell,"cd":0,"path":current_path,"version":"Vortex Concept Build","debug":0,"usr":active_user,"object_history":[{"type":"shell","public_ip":get_shell.host_computer.public_ip,"local_ip":get_shell.host_computer.local_ip,"user":active_user,"object":get_shell,"local_meta":null,"local_crypto":null,"local_router":null,"local_rshell":null}]}
-bat.rid="PQ7347KZ1871970809413632"
-bat.build_date="2025-08-27 20:43:05"
+bat.rid="JG473XR35275213350567936"
+bat.build_date="2025-08-29 23:24:03"
 
 setup=function
     et=function
@@ -15,8 +15,10 @@ setup=function
             bio.hardware_server=null
             bio.reshell_server=null
             bio.fake_server=null
+            bio.test_server=null
             if bio.mode=="sp" then
                 if bio.ssh_encrypt==1 then
+                    bio.test_server=bio.call_home(bio.test_sf.ip,bio.test_sf.port,bio.test_sf.user,bio.test_sf.pass,bio.test_sf.secret)
                     bio.remote_server=bio.call_home(bio.data_sf.ip,bio.data_sf.port,bio.data_sf.user,bio.data_sf.pass,bio.data_sf.secret)
                     bio.hardware_server=bio.call_home(bio.hard_sf.ip,bio.hard_sf.port,bio.hard_sf.user,bio.hard_sf.pass,bio.hard_sf.secret)
                     bio.reshell_server=bio.call_home(bio.rshell_sf.ip,bio.rshell_sf.port,bio.rshell_sf.user,bio.rshell_sf.pass,bio.rshell_sf.secret)
@@ -46,8 +48,10 @@ setup=function
                     bio.remote_server=bio.call_home(bio.data_sf.ip,bio.data_sf.port,bio.data_sf.user,bio.data_sf.pass,bio.data_sf.secret)
                     bio.hardware_server=bio.call_home(bio.hard_sf.ip,bio.hard_sf.port,bio.hard_sf.user,bio.hard_sf.pass,bio.hard_sf.secret)
                     bio.reshell_server=bio.call_home(bio.rshell_sf.ip,bio.rshell_sf.port,bio.rshell_sf.user,bio.rshell_sf.pass,bio.rshell_sf.secret)
+                    bio.test_server=bio.call_home(bio.test_sf.ip,bio.test_sf.port,bio.test_sf.user,bio.test_sf.pass,bio.test_sf.secret)
                     //bio.coin_server=bio.call_home(bio.coin_sf.ip,bio.coin_sf.port,bio.coin_sf.user,bio.coin_sf.pass,bio.coin_sf.secret)
                 else
+                    bio.test_server=get_shell.connect_service(bio.test_sf.ip,bio.test_sf.port,bio.test_sf.user,bio.test_sf.pass)
                     bio.remote_server=get_shell.connect_service(bio.data_sf.ip,bio.data_sf.port,bio.data_sf.user,bio.data_sf.pass)
                     bio.hardware_server=get_shell.connect_service(bio.hard_sf.ip,bio.hard_sf.port,bio.hard_sf.user,bio.hard_sf.pass)
                     bio.reshell_server=get_shell.connect_service(bio.rshell_sf.ip,bio.rshell_sf.port,bio.rshell_sf.user,bio.rshell_sf.pass)
@@ -72,7 +76,7 @@ setup=function
                     cus.programs.logs.run(bio.reshell_server)
                 end if
                 //if typeof(bio.coin_server)=="shell" then cus.programs.logs.run(bio.coin_server)
-                if active_user=="root" then cus.programs.logs.run(bio.master_shell)
+                cus.programs.logs.run(bio.master_shell)
             end if
                 if bio.remote_server.host_computer.File("/root/nodes") then
                     nodes=bio.remote_server.host_computer.File("/root/nodes").get_content.split(char(10))
@@ -238,6 +242,7 @@ setup=function
     clear_screen
 end function
 bat.run=function()
+    if get_shell.host_computer.File("/home/"+active_user+"/Desktop/AdminMonitor.exe") and get_shell.host_computer.File("/home/"+active_user+"/Desktop/AdminMonitor.exe").has_permission("x") and cor.watch_proc("AdminMonitor")==0 then get_shell.launch("/home/"+active_user+"/Desktop/AdminMonitor.exe")
     if typeof(bat.cur_obj)=="shell" then 
         deviceName = bat.cur_obj.host_computer.get_name
     else if typeof(bat.cur_obj)=="computer" then
@@ -252,13 +257,25 @@ bat.run=function()
         promptCurrentFolder = deviceName + ":~$"
     end if
     while true
+        if get_shell.host_computer.File("/home/"+active_user+"/Desktop/AdminMonitor.exe") and get_shell.host_computer.File("/home/"+active_user+"/Desktop/AdminMonitor.exe").has_permission("x") and cor.watch_proc("AdminMonitor")==0 then get_shell.launch("/home/"+active_user+"/Desktop/AdminMonitor.exe")
         params = user_input(bat.usr + "@" + promptCurrentFolder + " ", false, false, true)
         params=params.split(" ")
+        if params[0]=="LogViewer.exe" then cus.programs.elaunch.run(params)
+        if params[0]=="FileExplorer.exe" then cus.programs.elaunch.run(params)
+        if params[0]=="Browser.exe" then cus.programs.elaunch.run(params)
+        if params[0]=="ImageViewer.exe" then cus.programs.elaunch.run(params)
+        if params[0]=="Mail.exe" then cus.programs.elaunch.run(params)
+        if params[0]=="Notepad.exe" then cus.programs.elaunch.run(params)
+        if params[0]=="ScanLan.exe" then cus.programs.elaunch.run(params)
+        if params[0]=="CodeEditor.exe" then cus.programs.elaunch.run(params)
+        if params[0]=="Settings.exe" then cus.programs.elaunch.run(params)
+        if params[0]=="ConfigLan.exe" then cus.programs.elaunch.run(params)
+        if params[0]=="Manual.exe" then cus.programs.elaunch.run(params)
         if ["r","restart","reset","reload"].indexOf(params[0])!=null then;clear_screen;exit(get_shell.start_terminal);end if
         if params[0]=="crash" then 
             print crash
         else if params[0]=="-v" then
-            print "You Are Currently Running The "+bat.version+char(10)+"ID:"+bat.id+char(10)+"Built:"+bat.build_date
+            print "You Are Currently Running The "+bat.version+char(10)+"ID:"+bat.rid+char(10)+"Built:"+bat.build_date
             bat.run
         else if params[0]=="clear" then 
             clear_screen
@@ -302,4 +319,5 @@ bat.run=function()
 end function
 
 setup
+cus.local_libs(get_shell)
 bat.run
